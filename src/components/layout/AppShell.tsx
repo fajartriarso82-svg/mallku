@@ -140,7 +140,11 @@ export default function AppShell({ children, role, userName, userEmail }: AppShe
             </div>
           </div>
           <button
-            onClick={() => signOut({ callbackUrl: "/" })}
+            onClick={() => {
+              // Jika peran SCM (DISTRIBUTOR, TOKO, ADMIN), logout kembali ke /scm
+              const targetUrl = role === "BUYER" ? "/mp" : "/scm";
+              signOut({ callbackUrl: targetUrl });
+            }}
             className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-semibold text-white/90 hover:text-white bg-white/10 hover:bg-red-600/80 transition-colors"
           >
             <LogOut className="w-4 h-4" />
