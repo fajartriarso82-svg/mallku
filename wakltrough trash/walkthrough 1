@@ -1,0 +1,128 @@
+# Walkthrough: Mall ku v2 — Sprint 1 Selesai ✅
+
+**Project Location**: `C:\Users\nyong\Documents\trae_projects\mallku-v2`
+
+---
+
+## ✅ Yang Sudah Dibangun
+
+### Build Result: 17 Routes — 0 Error
+
+```text
+Route (app)
+├ ƒ /                       (Landing page — redirect berdasarkan role)
+├ ƒ /admin                  (Dashboard Admin)
+├ ƒ /admin/akun             (Approval Distributor & Toko)
+├ ○ /login                  (Halaman Login)
+├ ○ /register               (Halaman Daftar Akun)
+├ ƒ /mp                     (Marketplace Lokal-First)
+├ ƒ /scm/distributor        (Dashboard Distributor)
+├ ƒ /scm/distributor/catalog (Kelola Produk Grosir)
+├ ƒ /scm/toko/catalog       (Browse Katalog Grosir untuk Toko)
+├ ƒ /seller                 (Dashboard Toko — Dual Role SCM + MP)
+├ ƒ /api/auth/[...nextauth] (NextAuth handler)
+├ ƒ /api/user/register      (POST: daftar akun baru)
+├ ƒ /api/scm/orders         (GET/POST: SCM orders)
+├ ƒ /api/scm/orders/[id]    (PUT: update status SCM order → trigger StokToko)
+├ ƒ /api/admin/akun/[id]/approve (POST: approve akun)
+└ ƒ /api/admin/akun/[id]/reject  (POST: reject akun)
+```
+
+### Komponen Utama
+
+| File | Fungsi |
+|---|---|
+| [`prisma/schema.prisma`](file:///C:/Users/nyong/Documents/trae_projects/mallku-v2/prisma/schema.prisma) | Skema database lengkap — 20+ model |
+| [`prisma/seed.ts`](file:///C:/Users/nyong/Documents/trae_projects/mallku-v2/prisma/seed.ts) | 15 Kategori Master + Sub Kategori + 4 akun demo |
+| [`src/lib/auth.ts`](file:///C:/Users/nyong/Documents/trae_projects/mallku-v2/src/lib/auth.ts) | NextAuth v5 — role-based JWT |
+| [`src/lib/db.ts`](file:///C:/Users/nyong/Documents/trae_projects/mallku-v2/src/lib/db.ts) | Prisma singleton |
+| [`src/proxy.ts`](file:///C:/Users/nyong/Documents/trae_projects/mallku-v2/src/proxy.ts) | Route protection — role-based redirect |
+| [`src/components/layout/AppShell.tsx`](file:///C:/Users/nyong/Documents/trae_projects/mallku-v2/src/components/layout/AppShell.tsx) | Sidebar navigasi per role |
+| [`src/app/globals.css`](file:///C:/Users/nyong/Documents/trae_projects/mallku-v2/src/app/globals.css) | Design system Mall ku |
+
+---
+
+## 🔧 Langkah Setup Database (Harus Dilakukan Sekarang)
+
+> [!IMPORTANT]
+> Anda perlu setup Supabase dan mengisi `.env.local` sebelum database bisa digunakan.
+
+### 1. Setup Supabase Project
+1. Buka [supabase.com](https://supabase.com) → Login → **New Project**
+2. Nama: `mallku`, Region: **Singapore (Southeast Asia)**
+3. Tunggu ~2 menit hingga project selesai
+
+### 2. Ambil Kredensial Supabase
+Setelah project ready:
+- **Settings → Database → Connection String**
+  - Copy **Transaction pooler** (port `6543`) → untuk `DATABASE_URL`
+  - Copy **Direct connection** (port `5432`) → untuk `DIRECT_URL`
+- **Settings → API**
+  - Copy `Project URL` → untuk `NEXT_PUBLIC_SUPABASE_URL`
+  - Copy `anon/public` key → untuk `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+  - Copy `service_role` key → untuk `SUPABASE_SERVICE_ROLE_KEY`
+
+### 3. Buat `.env.local`
+Salin dari `.env.example` dan isi nilai-nilainya:
+```powershell
+# Di direktori mallku-v2:
+copy .env.example .env.local
+# Buka .env.local dan isi semua nilai dengan kredensial Supabase
+```
+
+### 4. Generate Auth Secret
+```powershell
+node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
+# Salin hasilnya ke AUTH_SECRET di .env.local
+```
+
+### 5. Push Schema ke Database
+```powershell
+npm run db:push
+```
+
+### 6. Seed Data Demo
+```powershell
+npm run db:seed
+```
+
+### 7. Jalankan Development Server
+```powershell
+npm run dev
+```
+
+Buka `http://localhost:3000` — aplikasi siap!
+
+---
+
+## 🔑 Akun Demo (setelah seed)
+
+| Role | Email | Password |
+|---|---|---|
+| Admin | admin@mallku.id | admin123 |
+| Distributor | distributor@mallku.id | dist123 |
+| Toko | toko@mallku.id | toko123 |
+| Buyer | buyer@mallku.id | buyer123 |
+
+---
+
+## 🚀 Sprint 2 — Next Steps (SCM Lengkap)
+
+Setelah database terhubung, Sprint 2 akan membangun:
+
+1. **Tambah Produk SCM** — form tambah produk + tier harga + upload foto ke Supabase Storage
+2. **SCM Orders List** — halaman daftar PO untuk Distributor & Toko
+3. **SCM Order Detail** — detail PO + update status + simulasi VA
+4. **Mitra Relasi** — Toko ajukan koneksi ke Distributor, Distributor approve
+5. **Stok Toko** — halaman stok yang masuk dari SCM, alokasi ke MP
+6. **Publish ke MP** — form publish listing dari stok toko
+
+---
+
+## 📝 Catatan Teknis
+
+- **Next.js 16.3.3** — menggunakan `params` sebagai `Promise` (async) di API routes
+- **Prisma v5.22.0** — stable, tidak pakai Prisma v8 RC
+- **Middleware** → Next.js 16 menggunakan `proxy.ts` (bukan `middleware.ts`)
+- **Supabase Storage** — bucket untuk foto produk & dokumen akan dibuat di Sprint 2
+- **PayLabs & BiteShip** — mock/simulasi dulu, integrasi nyata nanti

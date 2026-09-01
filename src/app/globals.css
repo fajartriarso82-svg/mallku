@@ -1,26 +1,101 @@
 @import "tailwindcss";
 
+/* ============================================================
+   MALL KU Design System
+   Navy #10245a | Red #e51d24 | Cyan #009ee2 | Green #009a49
+   ============================================================ */
+
+@theme {
+  --color-mk-navy: #10245a;
+  --color-mk-navy-light: #1a3a8a;
+  --color-mk-navy-dark: #0a1840;
+  --color-mk-red: #e51d24;
+  --color-mk-red-light: #ff3a40;
+  --color-mk-cyan: #009ee2;
+  --color-mk-cyan-light: #33b5e8;
+  --color-mk-green: #009a49;
+  --color-mk-green-light: #00c05a;
+  --color-mk-gold: #f5a623;
+  --color-mk-bg: #f0f4f8;
+  --color-mk-surface: #ffffff;
+  --color-mk-border: #e2e8f0;
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --mk-navy: #10245a;
+  --mk-red: #e51d24;
+  --mk-cyan: #009ee2;
+  --mk-green: #009a49;
+  --mk-gold: #f5a623;
+  --mk-bg: #f0f4f8;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+* {
+  box-sizing: border-box;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--mk-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e0;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #10245a;
+}
+
+.mk-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(16, 36, 90, 0.1);
+}
+
+.mk-card-hover {
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.mk-card-hover:hover {
+  box-shadow: 0 4px 12px rgba(16, 36, 90, 0.12);
+  transform: translateY(-2px);
+}
+
+.status-aktif { background: #dcfce7; color: #14532d; }
+.status-nonaktif { background: #f3f4f6; color: #6b7280; }
+.status-menunggu { background: #fef3c7; color: #92400e; }
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.4s ease forwards;
+  opacity: 0;
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, #f0f4f8 25%, #e2e8f0 50%, #f0f4f8 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
 }

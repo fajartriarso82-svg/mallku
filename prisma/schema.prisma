@@ -1,0 +1,572 @@
+// Mall ku - Prisma Schema
+// Generated: 2026-08-31
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ============================================================
+// ENUMS
+// ============================================================
+
+enum UserRole {
+  ADMIN
+  DISTRIBUTOR
+  TOKO
+  BUYER
+}
+
+enum StatusAkun {
+  MENUNGGU_VERIFIKASI
+  AKTIF
+  NONAKTIF
+  DITOLAK
+}
+
+enum StatusOrderSCM {
+  DRAFT
+  MENUNGGU_PEMBAYARAN
+  DIBAYAR
+  DIPROSES
+  DIKIRIM
+  DITERIMA
+  SELESAI
+  DIBATALKAN
+}
+
+enum StatusOrderMP {
+  MENUNGGU_PEMBAYARAN
+  DIBAYAR
+  DIPROSES
+  DIKIRIM
+  DITERIMA
+  SELESAI
+  DIBATALKAN
+  REFUND
+}
+
+enum MetodePembayaran {
+  VA
+  QRIS
+}
+
+enum StatusPembayaran {
+  MENUNGGU
+  BERHASIL
+  GAGAL
+  EXPIRED
+}
+
+enum ModePengiriman {
+  TOKO_SENDIRI
+  BITESHIP
+}
+
+enum StatusPengiriman {
+  MENUNGGU_PICKUP
+  DIKIRIM
+  DITERIMA
+}
+
+enum StatusListing {
+  DRAFT
+  AKTIF
+  NONAKTIF
+  HABIS
+}
+
+// ============================================================
+// USER & AUTH
+// ============================================================
+
+model User {
+  id            String     @id @default(cuid())
+  email         String     @unique
+  emailVerified DateTime?
+  passwordHash  String?
+  name          String?
+  telepon       String?
+  avatar        String?
+  role          UserRole   @default(BUYER)
+  statusAkun    StatusAkun @default(MENUNGGU_VERIFIKASI)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  distributorProfile DistributorProfile?
+  tokoProfile        TokoProfile?
+  buyerProfile       BuyerProfile?
+  accounts           Account[]
+  sessions           Session[]
+  alamat             Alamat[]
+  orderScmSebagaiToko OrderSCM[]   @relation("TokoOrder")
+  orderMpSebagaiBuyer OrderMP[]    @relation("BuyerOrder")
+
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+// ============================================================
+// PROFILES
+// ============================================================
+
+model DistributorProfile {
+  id            String  @id @default(cuid())
+  userId        String  @unique
+  namaUsaha     String
+  slug          String  @unique
+  deskripsi     String? @db.Text
+  alamatLengkap String
+  provinsi      String
+  kabupatenKota String
+  kecamatan     String
+  desa          String?
+  kodePos       String?
+  noNib         String?
+  noNpwp        String?
+  dokumenUrls   String[]
+  catatan       String? @db.Text
+  websiteUrl    String?
+  user          User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  produkMaster ProdukMasterSCM[]
+  orderMasuk   OrderSCM[]        @relation("DistributorOrder")
+  mitraRelasi  MitraRelasi[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("distributor_profiles")
+}
+
+model TokoProfile {
+  id            String  @id @default(cuid())
+  userId        String  @unique
+  namaToko      String
+  slug          String  @unique
+  deskripsi     String? @db.Text
+  fotoProfil    String?
+  fotoBanner    String?
+  alamatLengkap String
+  provinsi      String
+  kabupatenKota String
+  kecamatan     String
+  desa          String?
+  kodePos       String?
+  lat           Float?
+  lng           Float?
+  noNib         String?
+  noNpwp        String?
+  dokumenUrls   String[]
+  catatan       String? @db.Text
+  tokoMpAktif   Boolean @default(false)
+  jamBuka       String?
+  metodePengirimanDiDukung ModePengiriman[]
+  user          User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  stokToko     StokToko[]
+  listingMp    ListingMP[]
+  orderMpGrup  OrderGroupMP[]
+  mitraRelasi  MitraRelasi[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("toko_profiles")
+}
+
+model BuyerProfile {
+  id       String  @id @default(cuid())
+  userId   String  @unique
+  nama     String
+  telepon  String?
+  user     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("buyer_profiles")
+}
+
+// ============================================================
+// ALAMAT
+// ============================================================
+
+model Alamat {
+  id            String  @id @default(cuid())
+  userId        String
+  label         String
+  namaPenerima  String
+  telepon       String
+  alamatLengkap String
+  provinsi      String
+  kabupatenKota String
+  kecamatan     String
+  desa          String?
+  kodePos       String?
+  lat           Float?
+  lng           Float?
+  isUtama       Boolean @default(false)
+  user          User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orderMp       OrderMP[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("alamat")
+}
+
+// ============================================================
+// KATEGORI (shared SCM & MP)
+// ============================================================
+
+model KategoriMaster {
+  id        String  @id @default(cuid())
+  nama      String  @unique
+  slug      String  @unique
+  icon      String?
+  deskripsi String?
+  urutan    Int     @default(0)
+  aktif     Boolean @default(true)
+
+  kategoriProduk KategoriProduk[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("kategori_master")
+}
+
+model KategoriProduk {
+  id               String         @id @default(cuid())
+  kategoriMasterId String
+  nama             String
+  slug             String         @unique
+  deskripsi        String?
+  urutan           Int            @default(0)
+  aktif            Boolean        @default(true)
+  kategoriMaster   KategoriMaster @relation(fields: [kategoriMasterId], references: [id])
+
+  produkMaster ProdukMasterSCM[]
+  listingMp    ListingMP[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("kategori_produk")
+}
+
+// ============================================================
+// SCM MODULE
+// ============================================================
+
+model ProdukMasterSCM {
+  id               String             @id @default(cuid())
+  distributorId    String
+  kodesku          String
+  nama             String
+  kategoriProdukId String
+  satuan           String
+  beratGram        Float?
+  deskripsi        String?            @db.Text
+  fotoUrls         String[]
+  aktif            Boolean            @default(true)
+  distributor      DistributorProfile @relation(fields: [distributorId], references: [id])
+  kategoriProduk   KategoriProduk     @relation(fields: [kategoriProdukId], references: [id])
+
+  hargaTier  HargaTierSCM[]
+  stokGudang StokGudang?
+  orderItem  OrderItemSCM[]
+  stokToko   StokToko[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([distributorId, kodesku])
+  @@map("produk_master_scm")
+}
+
+model HargaTierSCM {
+  id       String          @id @default(cuid())
+  produkId String
+  minQty   Int
+  harga    Decimal         @db.Decimal(15, 2)
+  produk   ProdukMasterSCM @relation(fields: [produkId], references: [id], onDelete: Cascade)
+
+  @@map("harga_tier_scm")
+}
+
+model StokGudang {
+  id            String          @id @default(cuid())
+  produkId      String          @unique
+  stokAktual    Int             @default(0)
+  stokReservasi Int             @default(0)
+  produk        ProdukMasterSCM @relation(fields: [produkId], references: [id], onDelete: Cascade)
+
+  updatedAt DateTime @updatedAt
+
+  @@map("stok_gudang")
+}
+
+model MitraRelasi {
+  id            String             @id @default(cuid())
+  distributorId String
+  tokoId        String
+  status        StatusAkun         @default(MENUNGGU_VERIFIKASI)
+  catatan       String?
+  distributor   DistributorProfile @relation(fields: [distributorId], references: [id])
+  toko          TokoProfile        @relation(fields: [tokoId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([distributorId, tokoId])
+  @@map("mitra_relasi")
+}
+
+model OrderSCM {
+  id            String             @id @default(cuid())
+  nomorPo       String             @unique
+  tokoId        String
+  distributorId String
+  status        StatusOrderSCM     @default(MENUNGGU_PEMBAYARAN)
+  totalHarga    Decimal            @db.Decimal(15, 2)
+  catatan       String?            @db.Text
+  toko          User               @relation("TokoOrder", fields: [tokoId], references: [id])
+  distributor   DistributorProfile @relation("DistributorOrder", fields: [distributorId], references: [id])
+
+  items      OrderItemSCM[]
+  pembayaran PembayaranSCM?
+  stokToko   StokToko[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("order_scm")
+}
+
+model OrderItemSCM {
+  id           String          @id @default(cuid())
+  orderId      String
+  produkId     String
+  namaSnapshot String
+  qty          Int
+  hargaSatuan  Decimal         @db.Decimal(15, 2)
+  subtotal     Decimal         @db.Decimal(15, 2)
+  order        OrderSCM        @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  produk       ProdukMasterSCM @relation(fields: [produkId], references: [id])
+
+  @@map("order_item_scm")
+}
+
+model PembayaranSCM {
+  id           String           @id @default(cuid())
+  orderId      String           @unique
+  metode       MetodePembayaran @default(VA)
+  status       StatusPembayaran @default(MENUNGGU)
+  vaNumber     String?
+  vaExpiredAt  DateTime?
+  jumlah       Decimal          @db.Decimal(15, 2)
+  callbackData Json?
+  paidAt       DateTime?
+  order        OrderSCM         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("pembayaran_scm")
+}
+
+// ============================================================
+// STOK TOKO (Bridge SCM -> MP)
+// ============================================================
+
+model StokToko {
+  id             String          @id @default(cuid())
+  tokoId         String
+  produkMasterId String
+  orderScmId     String?
+  jumlahDiterima Int
+  jumlahTersedia Int
+  jumlahAlokMP   Int             @default(0)
+  toko           TokoProfile     @relation(fields: [tokoId], references: [id])
+  produkMaster   ProdukMasterSCM @relation(fields: [produkMasterId], references: [id])
+  orderScm       OrderSCM?       @relation(fields: [orderScmId], references: [id])
+
+  listingMp ListingMP[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("stok_toko")
+}
+
+// ============================================================
+// MP MODULE
+// ============================================================
+
+model ListingMP {
+  id               String         @id @default(cuid())
+  tokoId           String
+  stokTokoId       String
+  kategoriProdukId String
+  judulJual        String
+  deskripsi        String?        @db.Text
+  fotoUrls         String[]
+  hargaJual        Decimal        @db.Decimal(15, 2)
+  beratGram        Int?
+  status           StatusListing  @default(DRAFT)
+  stokTampil       Int            @default(0)
+  terjual          Int            @default(0)
+  toko             TokoProfile    @relation(fields: [tokoId], references: [id])
+  stokToko         StokToko       @relation(fields: [stokTokoId], references: [id])
+  kategoriProduk   KategoriProduk @relation(fields: [kategoriProdukId], references: [id])
+
+  varian    VarianListing[]
+  orderItem OrderItemMP[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("listing_mp")
+}
+
+model VarianListing {
+  id          String    @id @default(cuid())
+  listingId   String
+  namaVarian  String
+  nilaiVarian String
+  stokVarian  Int       @default(0)
+  hargaTambah Decimal   @default(0) @db.Decimal(15, 2)
+  listing     ListingMP @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@map("varian_listing")
+}
+
+model OrderMP {
+  id               String           @id @default(cuid())
+  nomorOrder       String           @unique
+  buyerId          String
+  alamatId         String
+  status           StatusOrderMP    @default(MENUNGGU_PEMBAYARAN)
+  totalBayar       Decimal          @db.Decimal(15, 2)
+  metodePembayaran MetodePembayaran
+  buyer            User             @relation("BuyerOrder", fields: [buyerId], references: [id])
+  alamat           Alamat           @relation(fields: [alamatId], references: [id])
+
+  grup       OrderGroupMP[]
+  pembayaran PembayaranMP?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("order_mp")
+}
+
+model OrderGroupMP {
+  id               String         @id @default(cuid())
+  orderId          String
+  tokoId           String
+  subtotal         Decimal        @db.Decimal(15, 2)
+  ongkir           Decimal        @default(0) @db.Decimal(15, 2)
+  totalGrup        Decimal        @db.Decimal(15, 2)
+  metodePengiriman ModePengiriman
+  status           StatusOrderMP  @default(MENUNGGU_PEMBAYARAN)
+  catatan          String?        @db.Text
+  order            OrderMP        @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  toko             TokoProfile    @relation(fields: [tokoId], references: [id])
+
+  items      OrderItemMP[]
+  pengiriman PengirimanMP?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("order_group_mp")
+}
+
+model OrderItemMP {
+  id            String       @id @default(cuid())
+  grupId        String
+  listingId     String
+  namaSnapshot  String
+  hargaSnapshot Decimal      @db.Decimal(15, 2)
+  qty           Int
+  subtotal      Decimal      @db.Decimal(15, 2)
+  grup          OrderGroupMP @relation(fields: [grupId], references: [id], onDelete: Cascade)
+  listing       ListingMP    @relation(fields: [listingId], references: [id])
+
+  @@map("order_item_mp")
+}
+
+model PembayaranMP {
+  id            String           @id @default(cuid())
+  orderId       String           @unique
+  metode        MetodePembayaran
+  status        StatusPembayaran @default(MENUNGGU)
+  jumlah        Decimal          @db.Decimal(15, 2)
+  vaNumber      String?
+  vaExpiredAt   DateTime?
+  qrisData      String?          @db.Text
+  qrisExpiredAt DateTime?
+  callbackData  Json?
+  paidAt        DateTime?
+  order         OrderMP          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("pembayaran_mp")
+}
+
+model PengirimanMP {
+  id           String           @id @default(cuid())
+  grupId       String           @unique
+  mode         ModePengiriman
+  namaKurir    String?
+  resi         String?
+  biteshipData Json?
+  status       StatusPengiriman @default(MENUNGGU_PICKUP)
+  catatanKirim String?
+  dikirimAt    DateTime?
+  diterimaAt   DateTime?
+  grup         OrderGroupMP     @relation(fields: [grupId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("pengiriman_mp")
+}
