@@ -15,8 +15,8 @@ export default function ForgotPasswordPage() {
           <div className="max-w-md w-full flex flex-col items-center lg:items-end text-center lg:text-right">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/Logo-BG.png"
-              alt="Logo Mall ku"
+              src="/Logo2.png"
+              alt="Logo Mall ku SCM"
               className="w-72 sm:w-80 md:w-96 h-auto object-contain mb-6"
             />
             <p className="text-sm font-medium text-slate-500 max-w-xs">

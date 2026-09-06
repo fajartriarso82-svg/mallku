@@ -1,213 +1,152 @@
-import { auth } from "@/lib/auth";
-import { redirect } from "next/navigation";
-import AppShell from "@/components/layout/AppShell";
-import { prisma } from "@/lib/db";
-import { formatRupiah } from "@/lib/utils";
-import { KPICards, KPICardItem } from "@/components/ui/kpi-cards";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Users, ShieldAlert, ShoppingCart, Store, Building2, PackageCheck } from "lucide-react";
 import Link from "next/link";
+import { ArrowUpRight, Building2, PackageCheck, ShieldAlert, ShoppingCart, Store, Users } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { KPICards } from "@/components/ui/kpi-cards";
+import {
+  dummyAkunSCM,
+  dummyDispute,
+  dummyIuranSCM,
+  dummyListingMP,
+  dummyOrderMP,
+  dummyPencairan,
+  dummySellerMP,
+  dummyStokSCM,
+  dummyTransaksiSCM,
+  metrikOverview,
+} from "@/lib/dummy/admin-data";
+import { formatRupiah } from "@/lib/utils";
 
-export const metadata = { title: "Dashboard Admin SCM" };
+export const metadata = { title: "Dashboard Admin" };
 
-export default async function AdminDashboard() {
-  const session = await auth();
-  if (!session || (session.user as any)?.role !== "ADMIN") redirect("/login");
+const kpiData = [
+  { title: "Distributor Aktif", value: metrikOverview.totalDistAktif, change: { percentage: 8.2, period: "bulan lalu" }, icon: <Building2 className="w-5 h-5" />, iconBgColor: "bg-sky-50", iconColor: "text-sky-600" },
+  { title: "Toko Aktif", value: metrikOverview.totalTokoAktif, change: { percentage: 15.4, period: "bulan lalu" }, icon: <Store className="w-5 h-5" />, iconBgColor: "bg-emerald-50", iconColor: "text-emerald-600" },
+  { title: "GMV SCM", value: formatRupiah(metrikOverview.gmvSCM), change: { percentage: 12.5, period: "bulan lalu" }, icon: <ShoppingCart className="w-5 h-5" />, iconBgColor: "bg-violet-50", iconColor: "text-violet-600" },
+  { title: "GMV MP", value: formatRupiah(metrikOverview.gmvMP), change: { percentage: 18.3, period: "bulan lalu" }, icon: <PackageCheck className="w-5 h-5" />, iconBgColor: "bg-rose-50", iconColor: "text-rose-600" },
+  { title: "Menunggu Approval", value: metrikOverview.pendingApproval, change: { percentage: -4.5, period: "hari ini" }, icon: <ShieldAlert className="w-5 h-5" />, iconBgColor: "bg-amber-50", iconColor: "text-amber-600" },
+  { title: "Akun Terdaftar", value: dummyAkunSCM.length + dummySellerMP.length, change: { percentage: 10.1, period: "bulan lalu" }, icon: <Users className="w-5 h-5" />, iconBgColor: "bg-slate-100", iconColor: "text-slate-700" },
+];
 
-  // Query secara berurutan agar aman dengan PgBouncer pooler
-  const totalDistributor = await prisma.user.count({ where: { role: "DISTRIBUTOR", statusAkun: "AKTIF" } });
-  const totalToko = await prisma.user.count({ where: { role: "TOKO", statusAkun: "AKTIF" } });
-  const totalBuyer = await prisma.user.count({ where: { role: "BUYER" } });
-  const unverified = await prisma.user.count({ where: { statusAkun: "MENUNGGU_VERIFIKASI" } });
-  const totalOrderSCM = await prisma.orderSCM.count();
-  const totalOrderMP = await prisma.orderMP.count();
-  const revenueSCM = await prisma.orderSCM.aggregate({ where: { status: "SELESAI" }, _sum: { totalHarga: true } });
-  const revenueMP = await prisma.orderMP.aggregate({ where: { status: "SELESAI" }, _sum: { totalBayar: true } });
+const approvalQueue = dummyAkunSCM.filter((item) => item.status === "PENDING").slice(0, 4);
+const latestOrders = dummyTransaksiSCM.slice(0, 4);
 
-  const totalAkun = totalDistributor + totalToko + totalBuyer;
-
-  const kpiData: KPICardItem[] = [
-    {
-      title: "Total Akun Terdaftar",
-      value: totalAkun,
-      change: { percentage: 12.5, period: "bulan lalu" },
-      icon: <Users className="w-6 h-6" />,
-      iconBgColor: "bg-blue-50",
-      iconColor: "text-blue-600",
-    },
-    {
-      title: "Distributor Aktif",
-      value: totalDistributor,
-      change: { percentage: 8.2, period: "bulan lalu" },
-      icon: <Building2 className="w-6 h-6" />,
-      iconBgColor: "bg-sky-50",
-      iconColor: "text-sky-600",
-    },
-    {
-      title: "Toko / Mitra Aktif",
-      value: totalToko,
-      change: { percentage: 15.4, period: "bulan lalu" },
-      icon: <Store className="w-6 h-6" />,
-      iconBgColor: "bg-emerald-50",
-      iconColor: "text-emerald-600",
-    },
-    {
-      title: "Akun Belum Tervalidasi",
-      value: unverified,
-      change: { percentage: unverified > 0 ? -5.0 : 0, period: "bulan lalu" },
-      icon: <ShieldAlert className="w-6 h-6" />,
-      iconBgColor: unverified > 0 ? "bg-amber-50" : "bg-slate-50",
-      iconColor: unverified > 0 ? "text-amber-600" : "text-slate-400",
-    },
-    {
-      title: "Total Order SCM",
-      value: totalOrderSCM,
-      change: { percentage: 21.0, period: "bulan lalu" },
-      icon: <ShoppingCart className="w-6 h-6" />,
-      iconBgColor: "bg-purple-50",
-      iconColor: "text-purple-600",
-    },
-    {
-      title: "Total Transaksi Marketplace",
-      value: totalOrderMP,
-      change: { percentage: 18.3, period: "bulan lalu" },
-      icon: <PackageCheck className="w-6 h-6" />,
-      iconBgColor: "bg-rose-50",
-      iconColor: "text-rose-600",
-    },
-  ];
-
-  const pendingAccounts = await prisma.user.findMany({
-    where: { statusAkun: "MENUNGGU_VERIFIKASI" },
-    include: { distributorProfile: true, tokoProfile: true },
-    orderBy: { createdAt: "asc" },
-    take: 5,
-  });
-
-  const recentOrders = await prisma.orderSCM.findMany({
-    include: { toko: true, distributor: true, items: true },
-    orderBy: { createdAt: "desc" },
-    take: 5,
-  });
-
+export default function AdminDashboard() {
   return (
-    <AppShell role="ADMIN" userName={session.user?.name ?? ""} userEmail={session.user?.email ?? ""}>
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Dashboard Administrator</h1>
-          <p className="text-sm text-slate-500">Ringkasan statistik operasional ekosistem SCM & Marketplace</p>
-        </div>
-
-        {/* 6 KPI Cards Grid */}
-        <KPICards data={kpiData} columns={3} />
-
-        {/* GMV Summary Cards */}
-        <div className="grid md:grid-cols-2 gap-4">
-          <Card className="border-l-4 border-l-sky-600">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-slate-500">Total Nilai Transaksi SCM (B2B)</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-extrabold text-sky-700">
-                {formatRupiah(Number(revenueSCM._sum.totalHarga ?? 0))}
-              </div>
-              <p className="text-xs text-slate-400 mt-1">Akumulasi PO status SELESAI</p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-l-4 border-l-emerald-600">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-slate-500">Total Nilai Transaksi MP (B2C)</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-extrabold text-emerald-700">
-                {formatRupiah(Number(revenueMP._sum.totalBayar ?? 0))}
-              </div>
-              <p className="text-xs text-slate-400 mt-1">Akumulasi Penjualan Toko ke Buyer</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Tables Grid */}
-        <div className="grid md:grid-cols-2 gap-6">
-          {/* Akun Menunggu Verifikasi */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-3">
-              <CardTitle className="text-base font-bold text-slate-800 flex items-center gap-2">
-                <ShieldAlert className="w-5 h-5 text-amber-500" />
-                <span>Akun Menunggu Validasi</span>
-              </CardTitle>
-              <Link href="/admin/akun" className="text-xs font-semibold text-sky-600 hover:underline">
-                Lihat Semua ({unverified}) →
-              </Link>
-            </CardHeader>
-            <CardContent>
-              {pendingAccounts.length === 0 ? (
-                <div className="py-8 text-center text-slate-400 text-sm">
-                  Tidak ada akun yang menunggu validasi saat ini.
-                </div>
-              ) : (
-                <div className="divide-y divide-slate-100">
-                  {pendingAccounts.map((acc) => {
-                    const nama = acc.distributorProfile?.namaUsaha ?? acc.tokoProfile?.namaToko ?? acc.name;
-                    return (
-                      <div key={acc.id} className="py-3 flex items-center justify-between gap-3">
-                        <div>
-                          <p className="text-sm font-semibold text-slate-800">{nama}</p>
-                          <p className="text-xs text-slate-500">{acc.email} • <span className="font-medium text-slate-700">{acc.role}</span></p>
-                        </div>
-                        <Link
-                          href={`/admin/akun`}
-                          className="px-3 py-1.5 rounded-md text-xs font-semibold bg-slate-800 text-white hover:bg-slate-700"
-                        >
-                          Review
-                        </Link>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Transaksi SCM Terbaru */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-3">
-              <CardTitle className="text-base font-bold text-slate-800 flex items-center gap-2">
-                <ShoppingCart className="w-5 h-5 text-purple-600" />
-                <span>Purchase Order SCM Terbaru</span>
-              </CardTitle>
-              <Link href="/admin/transaksi" className="text-xs font-semibold text-sky-600 hover:underline">
-                Monitoring →
-              </Link>
-            </CardHeader>
-            <CardContent>
-              {recentOrders.length === 0 ? (
-                <div className="py-8 text-center text-slate-400 text-sm">
-                  Belum ada transaksi SCM tercatat.
-                </div>
-              ) : (
-                <div className="divide-y divide-slate-100">
-                  {recentOrders.map((ord) => (
-                    <div key={ord.id} className="py-3 flex items-center justify-between gap-3">
-                      <div>
-                        <p className="text-sm font-semibold text-slate-800">{ord.nomorPo}</p>
-                        <p className="text-xs text-slate-500">Toko: {ord.toko.name} • Dist: {ord.distributor.namaUsaha}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-xs font-bold text-slate-800">{formatRupiah(Number(ord.totalHarga))}</p>
-                        <span className="inline-block px-2 py-0.5 text-[10px] font-bold rounded-full bg-slate-100 text-slate-700">
-                          {ord.status}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+    <div className="space-y-6 text-[#26343F]">
+      <div>
+        <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#168BC3]">Overview</p>
+        <h1 className="mt-2 text-2xl font-extrabold text-[#26343F]">Dashboard Administrator</h1>
+        <p className="mt-1 text-sm text-[#687681]">Ringkasan ekosistem SCM dan Marketplace dalam satu panel operasional.</p>
       </div>
-    </AppShell>
+
+      <KPICards data={kpiData} columns={3} />
+
+      <div className="grid gap-6 xl:grid-cols-2">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-3">
+            <CardTitle className="flex items-center gap-2 text-base font-bold text-slate-800">
+              <ShieldAlert className="h-5 w-5 text-amber-500" />
+              Approval Queue
+            </CardTitle>
+            <Link href="/admin/akun" className="inline-flex items-center gap-1 text-xs font-semibold text-[#168BC3]">
+              Lihat semua <ArrowUpRight className="h-3.5 w-3.5" />
+            </Link>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {approvalQueue.map((item) => (
+                <div key={item.id} className="flex items-center justify-between rounded-xl border border-[#DDE3E7] bg-[#F5F7F8] p-3">
+                  <div>
+                    <p className="text-sm font-semibold text-slate-700">{item.namaUsaha}</p>
+                    <p className="text-xs text-slate-500">{item.tipe} · {item.kota}</p>
+                  </div>
+                  <span className="rounded-full bg-amber-100 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-amber-700">
+                    {item.status}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-3">
+            <CardTitle className="flex items-center gap-2 text-base font-bold text-slate-800">
+              <ShoppingCart className="h-5 w-5 text-violet-600" />
+              PO SCM Terbaru
+            </CardTitle>
+            <Link href="/admin/scm/po" className="inline-flex items-center gap-1 text-xs font-semibold text-[#168BC3]">
+              Monitoring <ArrowUpRight className="h-3.5 w-3.5" />
+            </Link>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {latestOrders.map((item) => (
+                <div key={item.id} className="flex items-center justify-between rounded-xl border border-[#DDE3E7] bg-[#F5F7F8] p-3">
+                  <div>
+                    <p className="text-sm font-semibold text-slate-700">{item.nomorPO}</p>
+                    <p className="text-xs text-slate-500">{item.dari} → {item.ke}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-bold text-slate-800">{formatRupiah(item.nominal)}</p>
+                    <p className="text-[10px] uppercase tracking-wider text-slate-500">{item.status}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid gap-6 xl:grid-cols-3">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base font-bold text-slate-800">Status Stok Kritikal</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {dummyStokSCM.filter((item) => item.status !== "AMAN").slice(0, 3).map((item) => (
+                <div key={item.id} className="rounded-xl border border-rose-200 bg-rose-50 p-3">
+                  <p className="text-sm font-semibold text-slate-700">{item.produk}</p>
+                  <p className="mt-1 text-xs text-slate-500">{item.distributor} · {item.stokTersedia}/{item.stokMinimum} {item.satuan}</p>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base font-bold text-slate-800">Dispute MP</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {dummyDispute.map((item) => (
+                <div key={item.id} className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                  <p className="text-sm font-semibold text-slate-700">{item.nomorOrder}</p>
+                  <p className="text-xs text-slate-500">{item.toko} · {item.pembeli}</p>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base font-bold text-slate-800">Pencairan Menunggu</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {dummyPencairan.filter((item) => item.status === "MENUNGGU").slice(0, 3).map((item) => (
+                <div key={item.id} className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                  <p className="text-sm font-semibold text-slate-700">{item.namaUsaha}</p>
+                  <p className="text-xs text-slate-500">{item.ref} · {formatRupiah(item.nominal)}</p>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
   );
 }

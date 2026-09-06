@@ -1,118 +1,73 @@
-import { auth } from "@/lib/auth";
-import { redirect } from "next/navigation";
-import AppShell from "@/components/layout/AppShell";
-import { prisma } from "@/lib/db";
-import Link from "next/link";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { dummyAkunSCM } from "@/lib/dummy/admin-data";
+
+const statusTabs = [
+  { value: "PENDING", label: "Menunggu Review" },
+  { value: "AKTIF", label: "Aktif" },
+  { value: "SUSPEND", label: "Suspend" },
+  { value: "DITOLAK", label: "Ditolak" },
+] as const;
 
 export const metadata = { title: "Kelola Akun" };
 
-export default async function AdminAkunPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ status?: string }>;
-}) {
-  const session = await auth();
-  if (!session || (session.user as any)?.role !== "ADMIN") redirect("/login");
-
-  const { status } = await searchParams;
-  const filterStatus = (status as any) || "MENUNGGU_VERIFIKASI";
-
-  const users = await prisma.user.findMany({
-    where: {
-      statusAkun: filterStatus,
-      role: { in: ["DISTRIBUTOR", "TOKO"] },
-    },
-    include: { distributorProfile: true, tokoProfile: true },
-    orderBy: { createdAt: "asc" },
-  });
-
-  const statusTabs = [
-    { val: "MENUNGGU_VERIFIKASI", label: "Menunggu", color: "#f59e0b" },
-    { val: "AKTIF", label: "Aktif", color: "#009a49" },
-    { val: "DITOLAK", label: "Ditolak", color: "#ef4444" },
-    { val: "NONAKTIF", label: "Nonaktif", color: "#6b7280" },
-  ];
-
+export default function AdminAkunPage() {
   return (
-    <AppShell role="ADMIN" userName={session.user?.name ?? ""} userEmail={session.user?.email ?? ""}>
-      <div className="space-y-5">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800">Kelola Akun Mitra</h1>
-          <p className="text-gray-500 text-sm">Verifikasi distributor dan toko baru</p>
-        </div>
-
-        {/* Tabs */}
-        <div className="flex gap-2 flex-wrap">
-          {statusTabs.map((tab) => (
-            <Link key={tab.val} href={`/admin/akun?status=${tab.val}`}
-              className="px-4 py-2 rounded-lg text-sm font-medium transition"
-              style={{
-                background: filterStatus === tab.val ? tab.color : "#f0f4f8",
-                color: filterStatus === tab.val ? "white" : "#6b7280",
-              }}>
-              {tab.label}
-            </Link>
-          ))}
-        </div>
-
-        {/* List */}
-        <div className="space-y-3">
-          {users.length === 0 ? (
-            <div className="mk-card p-12 text-center">
-              <div className="text-4xl mb-3">✅</div>
-              <p className="text-gray-500">Tidak ada akun dengan status ini</p>
-            </div>
-          ) : (
-            users.map((user) => {
-              const profile = user.distributorProfile ?? user.tokoProfile;
-                  const namaProfile = user.distributorProfile?.namaUsaha ?? user.tokoProfile?.namaToko ?? user.name ?? "";
-              return (
-                <div key={user.id} className="mk-card p-5 flex items-start justify-between gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <div className="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-white"
-                        style={{ background: user.role === "DISTRIBUTOR" ? "#009ee2" : "#009a49" }}>
-                        {((profile as any)?.namaUsaha ?? (profile as any)?.namaToko ?? "?")?.[0]?.toUpperCase() ?? "?"}
-                      </div>
-                      <div>
-                        <div className="font-semibold text-gray-800">{((profile as any)?.namaUsaha ?? (profile as any)?.namaToko ?? user.name)}</div>
-                        <div className="text-xs text-gray-500">{user.email} · {user.role}</div>
-                      </div>
-                    </div>
-                    <div className="text-sm text-gray-600 space-y-1 ml-13">
-                      {profile && (
-                        <>
-                          <p>📍 {profile.kecamatan}, {profile.kabupatenKota}, {profile.provinsi}</p>
-                          {profile.kodePos && <p>Kode Pos: {profile.kodePos}</p>}
-                        </>
-                      )}
-                      <p className="text-xs text-gray-400">Daftar: {new Date(user.createdAt).toLocaleDateString("id-ID", { dateStyle: "long" })}</p>
-                    </div>
-                  </div>
-                  {filterStatus === "MENUNGGU_VERIFIKASI" && (
-                    <div className="flex gap-2 flex-shrink-0">
-                      <form action={`/api/admin/akun/${user.id}/approve`} method="POST">
-                        <button type="submit"
-                          className="px-4 py-2 rounded-lg text-sm font-semibold text-white transition hover:opacity-90"
-                          style={{ background: "#009a49" }}>
-                          ✓ Approve
-                        </button>
-                      </form>
-                      <form action={`/api/admin/akun/${user.id}/reject`} method="POST">
-                        <button type="submit"
-                          className="px-4 py-2 rounded-lg text-sm font-semibold text-white transition hover:opacity-90"
-                          style={{ background: "#ef4444" }}>
-                          ✗ Tolak
-                        </button>
-                      </form>
-                    </div>
-                  )}
-                </div>
-              );
-            })
-          )}
-        </div>
+    <div className="space-y-5">
+      <div>
+        <p className="text-xs font-bold uppercase tracking-[0.2em] text-sky-600">Akun</p>
+        <h1 className="mt-2 text-2xl font-extrabold text-slate-800">Kelola Akun Mitra</h1>
+        <p className="mt-1 text-sm text-slate-500">Review distributor dan toko aktif, tertunda, atau perlu evaluasi.</p>
       </div>
-    </AppShell>
+
+      <div className="flex flex-wrap gap-2">
+        {statusTabs.map((tab) => (
+          <button key={tab.value} className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-600 shadow-sm hover:bg-slate-50">
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base font-bold text-slate-800">Daftar Akun</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-hidden rounded-xl border border-slate-200">
+            <table className="min-w-full text-left text-sm">
+              <thead className="bg-slate-100 text-slate-700">
+                <tr>
+                  <th className="px-4 py-3 font-semibold">Nama Usaha</th>
+                  <th className="px-4 py-3 font-semibold">Tipe</th>
+                  <th className="px-4 py-3 font-semibold">Pemilik</th>
+                  <th className="px-4 py-3 font-semibold">Kota</th>
+                  <th className="px-4 py-3 font-semibold">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {dummyAkunSCM.map((item) => (
+                  <tr key={item.id} className="border-t border-slate-200 bg-white">
+                    <td className="px-4 py-3 font-medium text-slate-700">{item.namaUsaha}</td>
+                    <td className="px-4 py-3 text-slate-600">{item.tipe}</td>
+                    <td className="px-4 py-3 text-slate-600">{item.pemilik}</td>
+                    <td className="px-4 py-3 text-slate-600">{item.kota}</td>
+                    <td className="px-4 py-3">
+                      <span className={
+                        item.status === "AKTIF"
+                          ? "rounded-full bg-emerald-100 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-emerald-700"
+                          : item.status === "PENDING"
+                            ? "rounded-full bg-amber-100 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-amber-700"
+                            : "rounded-full bg-rose-100 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-rose-700"
+                      }>
+                        {item.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

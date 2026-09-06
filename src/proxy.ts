@@ -89,5 +89,10 @@ function getDashboardUrl(role: string): string {
 }
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|Logo-BG.png).*)"],
+  // File statis & aset gambar (termasuk logo di /public) dikecualikan agar
+  // tidak diintersep middleware auth. Nama logo mengandung spasi, sehingga
+  // pengecualian dilakukan lewat ekstensi file (robust & berlaku untuk semua aset).
+  matcher: [
+    "/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:png|jpe?g|svg|webp|gif|avif|ico|txt|pdf|woff2?)$).*)",
+  ],
 };

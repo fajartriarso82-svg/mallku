@@ -52,8 +52,8 @@ export default function SCMLoginPage() {
             <div className="w-full flex justify-center lg:justify-end mb-6">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src="/Logo-BG.png"
-                alt="Logo Mall ku"
+                src="/Logo2.png"
+                alt="Logo Mall ku SCM"
                 className="w-80 sm:w-96 md:w-[460px] lg:w-[480px] h-auto object-contain block"
               />
             </div>
