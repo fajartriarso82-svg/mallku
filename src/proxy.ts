@@ -1,9 +1,15 @@
 import { auth } from "@/lib/auth";
 import { NextResponse } from "next/server";
 
-// Routes yang tidak perlu auth (semua berada di bawah /scm)
-const publicRoutes = ["/", "/scm", "/scm/login", "/scm/register", "/scm/forgot-password"];
-const authRoutes = ["/scm/login", "/scm/register", "/scm/forgot-password"];
+// Rute publik MP (storefront) — tanpa login
+const mpPublicRoutes = ["/", "/produk", "/kategori", "/toko", "/cari", "/keranjang", "/checkout", "/login", "/register"];
+// Rute publik SCM
+const scmPublicRoutes = ["/scm", "/scm/login", "/scm/register", "/scm/forgot-password"];
+// Halaman auth entry MP (jika sudah login, redirect ke dashboard)
+const mpAuthRoutes = ["/login", "/register"];
+const scmAuthRoutes = ["/scm/login", "/scm/register", "/scm/forgot-password"];
+// Area akun buyer
+const mpAccountRoutes = ["/akun", "/pesanan"];
 
 export default auth((req) => {
   const { nextUrl } = req;
@@ -11,57 +17,72 @@ export default auth((req) => {
   const userRole = (req.auth?.user as { role?: string } | undefined)?.role;
   const accountStatus = (req.auth?.user as { statusAkun?: string } | undefined)?.statusAkun;
 
-  const isPublicRoute = publicRoutes.some(
-    (route) => nextUrl.pathname === route || nextUrl.pathname.startsWith(route + "/")
-  );
-  const isAuthRoute = authRoutes.includes(nextUrl.pathname);
+  const path = nextUrl.pathname;
+  const isMpPublic = mpPublicRoutes.some((r) => path === r || path.startsWith(r + "/"));
+  const isScmPublic = scmPublicRoutes.some((r) => path === r);
+  const isMpAuth = mpAuthRoutes.includes(path);
+  const isScmAuth = scmAuthRoutes.includes(path);
+  const isScmArea = path.startsWith("/scm");
+  const isMpAccount = mpAccountRoutes.some((r) => path === r || path.startsWith(r + "/"));
 
-  // Root / selalu diarahkan ke halaman masuk SCM / landing
-  if (nextUrl.pathname === "/") {
-    return NextResponse.redirect(new URL("/scm", nextUrl));
-  }
-
-  // Sudah login tapi akses halaman auth → redirect ke dashboard masing-masing role
-  if (isLoggedIn && isAuthRoute) {
-    return NextResponse.redirect(new URL(getDashboardUrl(userRole ?? ""), nextUrl));
-  }
-
-  // Belum login dan bukan public route → arahkan ke /scm (halaman masuk)
-  if (!isLoggedIn && !isPublicRoute) {
-    return NextResponse.redirect(new URL("/scm", nextUrl));
-  }
-
-  // Role-based access control di dalam /scm
-  if (isLoggedIn && nextUrl.pathname.startsWith("/scm")) {
-    const scmRoles = ["DISTRIBUTOR", "TOKO", "ADMIN"];
-
-    // Hanya role SCM yang boleh masuk area /scm (di luar halaman publik)
-    if (
-      !isPublicRoute &&
-      !scmRoles.includes(userRole ?? "")
-    ) {
+  // ===== Area SCM =====
+  if (isScmArea) {
+    // Sudah login & akses halaman auth SCM → ke dashboard sesuai role
+    if (isLoggedIn && isScmAuth) {
+      return NextResponse.redirect(new URL(getScmDashboardUrl(userRole ?? ""), nextUrl));
+    }
+    // Belum login & bukan halaman publik SCM → ke /scm
+    if (!isLoggedIn && !isScmPublic) {
       return NextResponse.redirect(new URL("/scm", nextUrl));
     }
-
-    // Akun non-aktif: hanya boleh akses halaman pengaturan untuk melengkapi data
-    if (
-      scmRoles.includes(userRole ?? "") &&
-      accountStatus !== "AKTIF" &&
-      !nextUrl.pathname.startsWith("/scm/login") &&
-      !nextUrl.pathname.startsWith("/scm/register") &&
-      !nextUrl.pathname.startsWith("/scm/forgot-password") &&
-      !nextUrl.pathname.startsWith(userRole === "TOKO" ? "/scm/seller/pengaturan" : "/scm/distributor/pengaturan")
-    ) {
-      return NextResponse.redirect(
-        new URL(userRole === "TOKO" ? "/scm/seller/pengaturan" : "/scm/distributor/pengaturan", nextUrl)
-      );
+    if (isLoggedIn) {
+      const scmRoles = ["DISTRIBUTOR", "TOKO", "ADMIN"];
+      if (!isScmPublic && !scmRoles.includes(userRole ?? "")) {
+        return NextResponse.redirect(new URL("/scm", nextUrl));
+      }
+      // Akun non-aktif: hanya boleh akses halaman pengaturan
+      if (
+        scmRoles.includes(userRole ?? "") &&
+        accountStatus !== "AKTIF" &&
+        !isScmAuth &&
+        !nextUrl.pathname.startsWith(userRole === "TOKO" ? "/scm/seller/pengaturan" : "/scm/distributor/pengaturan")
+      ) {
+        return NextResponse.redirect(
+          new URL(userRole === "TOKO" ? "/scm/seller/pengaturan" : "/scm/distributor/pengaturan", nextUrl)
+        );
+      }
     }
+    return NextResponse.next();
+  }
+
+  // ===== Area MP =====
+  // Halaman auth buyer (login/register): jika sudah login, arahkan sesuai role
+  if (isMpAuth) {
+    if (isLoggedIn) {
+      const dest = userRole === "BUYER" ? "/akun" : getScmDashboardUrl(userRole ?? "");
+      return NextResponse.redirect(new URL(dest, nextUrl));
+    }
+    return NextResponse.next();
+  }
+
+  // Area akun buyer (akun, pesanan).
+  // Catatan: saat ini autentikasi BUYER masih dummy, jadi halaman ini diizinkan
+  // terbuka untuk pratinjau. Saat integrasi NextAuth BUYER, aktifkan guard di bawah.
+  if (isMpAccount) {
+    // if (!isLoggedIn) return NextResponse.redirect(new URL("/login", nextUrl));
+    // if (userRole !== "BUYER") return NextResponse.redirect(new URL("/scm", nextUrl));
+    return NextResponse.next();
+  }
+
+  // Rute MP publik (storefront) selalu bisa diakses
+  if (isMpPublic || !isLoggedIn) {
+    return NextResponse.next();
   }
 
   return NextResponse.next();
 });
 
-function getDashboardUrl(role: string): string {
+function getScmDashboardUrl(role: string): string {
   switch (role) {
     case "ADMIN":
       return "/scm/admin";
@@ -69,6 +90,8 @@ function getDashboardUrl(role: string): string {
       return "/scm/distributor";
     case "TOKO":
       return "/scm/seller";
+    case "BUYER":
+      return "/akun";
     default:
       return "/scm";
   }
