@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+﻿import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { dummyIuranSCM } from "@/lib/dummy/admin-data";
 import { formatRupiah } from "@/lib/utils";
 

@@ -26,5 +26,5 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     });
   }
 
-  return NextResponse.redirect(new URL("/admin/akun", req.url));
+  return NextResponse.redirect(new URL("/scm/admin/akun", req.url));
 }

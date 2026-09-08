@@ -65,7 +65,7 @@ export default function ProdukTokoPage() {
               <option value="">Semua Distributor</option>
               {dists.map((d) => <option key={d}>{d}</option>)}
             </select>
-            <Link href="/seller/po" className="relative inline-flex items-center gap-2 rounded-xl bg-cyan-600 px-4 py-2 text-sm font-bold text-white hover:bg-cyan-500">
+            <Link href="/scm/seller/po" className="relative inline-flex items-center gap-2 rounded-xl bg-cyan-600 px-4 py-2 text-sm font-bold text-white hover:bg-cyan-500">
               <ShoppingCart className="h-4 w-4" /> Keranjang PO
               {cartTotal > 0 && <span className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-[10px] font-bold text-white">{cartTotal}</span>}
             </Link>

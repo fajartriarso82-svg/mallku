@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Building2, Store, ShoppingBag, ArrowRight } from "lucide-react";
+import { Building2, Store, ArrowRight } from "lucide-react";
 import { Logo } from "@/components/layout/Logo";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -16,14 +16,13 @@ const PROVINSI_LIST = [
   "Maluku", "Maluku Utara", "Papua Barat", "Papua",
 ];
 
-type RegisterPageProps = { scmOnly?: boolean };
 type RegisterForm = {
   email: string;
   password: string;
   confirmPassword: string;
   name: string;
   telepon: string;
-  role: "TOKO" | "DISTRIBUTOR" | "BUYER";
+  role: "TOKO" | "DISTRIBUTOR";
   namaUsaha: string;
   provinsi: string;
   kabupatenKota: string;
@@ -33,7 +32,7 @@ type RegisterForm = {
   alamatLengkap: string;
 };
 
-export default function RegisterPage({ scmOnly = false }: RegisterPageProps) {
+export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
@@ -75,11 +74,10 @@ export default function RegisterPage({ scmOnly = false }: RegisterPageProps) {
     }
   }
 
-  const loginHref = scmOnly ? "/scm/login" : "/mp/login";
+  const loginHref = "/scm/login";
   const roles = [
-    { val: "TOKO" as const, label: "Toko (Mitra SCM & MP)", icon: <Store className="mx-auto mb-1 h-5 w-5 text-[#B61F18]" /> },
+    { val: "TOKO" as const, label: "Toko (Mitra SCM)", icon: <Store className="mx-auto mb-1 h-5 w-5 text-[#B61F18]" /> },
     { val: "DISTRIBUTOR" as const, label: "Distributor (B2B)", icon: <Building2 className="mx-auto mb-1 h-5 w-5 text-[#247094]" /> },
-    ...(!scmOnly ? [{ val: "BUYER" as const, label: "Pembeli Marketplace", icon: <ShoppingBag className="mx-auto mb-1 h-5 w-5 text-emerald-600" /> }] : []),
   ];
 
   if (success) {
@@ -95,26 +93,26 @@ export default function RegisterPage({ scmOnly = false }: RegisterPageProps) {
     );
   }
 
-  const isBusiness = form.role !== "BUYER";
+  const isBusiness = true;
   return (
     <div className="mx-auto my-8 w-full max-w-xl">
       <Card className="overflow-hidden border-slate-200 shadow-xl">
         <div className="bg-gradient-to-r from-slate-900 via-[#10245a] to-[#247094] p-6 text-center text-white">
           <div className="mb-3 inline-block rounded-xl bg-white p-2.5 shadow"><Logo size="md" /></div>
           <h1 className="text-xl font-bold">Pendaftaran Akun Mall ku</h1>
-          <p className="mt-1 text-xs text-slate-200">{scmOnly ? "Daftar sebagai distributor atau toko mitra SCM" : "Pilih akun pembeli atau mitra usaha sesuai kebutuhan"}</p>
+          <p className="mt-1 text-xs text-slate-200">Daftar sebagai distributor atau toko mitra SCM</p>
         </div>
         <CardContent className="p-6 md:p-8">
           {error && <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-xs font-semibold text-red-700">{error}</div>}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-700">Pilih Tipe Mitra Akun</label>
-              <div className={`grid ${scmOnly ? "grid-cols-2" : "grid-cols-3"} gap-2`}>
+              <div className="grid grid-cols-2 gap-2">
                 {roles.map((role) => <button key={role.val} type="button" onClick={() => update("role", role.val)} className={`rounded-xl border p-3 text-center text-xs font-bold transition-all ${form.role === role.val ? "border-[#10245a] bg-blue-50/50 text-[#10245a] ring-2 ring-[#10245a]/20" : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"}`}>{role.icon}<span>{role.label}</span></button>)}
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <Field label={form.role === "BUYER" ? "Nama Lengkap" : "Nama Pemilik / PIC"} value={form.name} onChange={(value) => update("name", value)} placeholder="Nama lengkap" required />
+              <Field label="Nama Pemilik / PIC" value={form.name} onChange={(value) => update("name", value)} placeholder="Nama lengkap" required />
               <Field label="Nomor Telepon / WA" value={form.telepon} onChange={(value) => update("telepon", value)} placeholder="08xxxxxxxxxx" required />
             </div>
             {isBusiness && <Field label={form.role === "TOKO" ? "Nama Usaha / Toko" : "Nama Perusahaan / Distributor"} value={form.namaUsaha} onChange={(value) => update("namaUsaha", value)} placeholder={form.role === "TOKO" ? "Toko Berkah Abadi" : "PT Distribusi Nusantara Jaya"} required />}

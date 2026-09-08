@@ -83,7 +83,7 @@ export default function DistributorShell({
             <Link href="/scm/distributor" className="flex items-center justify-center">
               <span className="shrink-0 rounded-lg bg-white p-1">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/Logo2 only2.png" alt="Mall ku SCM" className="h-14 w-auto object-contain" />
+                <img src="/Logo2-only2.png" alt="Mall ku SCM" className="h-14 w-auto object-contain" />
               </span>
             </Link>
           )}

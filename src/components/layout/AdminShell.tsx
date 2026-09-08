@@ -12,18 +12,15 @@ import {
   ClipboardList,
   Wallet,
   Landmark,
-  Store,
   Bell,
   Search,
   LogOut,
   Menu,
   PanelLeftClose,
   ChevronDown,
-  Settings,
   ShieldCheck,
   Building2,
-  PackageCheck,
-  ArrowRightLeft,
+  Settings2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -34,7 +31,7 @@ interface Leaf {
 }
 
 interface Group {
-  context: "ROOT" | "SCM" | "MP";
+  context: "ROOT" | "SCM";
   title: string;
   icon: React.ReactNode;
   children: Leaf[];
@@ -45,46 +42,32 @@ const adminNav: Group[] = [
     context: "ROOT",
     title: "Dashboard",
     icon: <LayoutDashboard className="h-5 w-5" />,
-    children: [{ href: "/admin", label: "Dashboard", icon: <LayoutDashboard className="h-5 w-5" /> }],
+    children: [{ href: "/scm/admin", label: "Dashboard", icon: <LayoutDashboard className="h-5 w-5" /> }],
   },
   {
     context: "SCM",
     title: "SCM — Distributor & Toko",
     icon: <Building2 className="h-5 w-5" />,
     children: [
-      { href: "/admin/scm/user", label: "Kelola Akun", icon: <Users className="h-5 w-5" /> },
-      { href: "/admin/scm/master", label: "Master SCM", icon: <Database className="h-5 w-5" /> },
-      { href: "/admin/scm/stok", label: "Stok & Inventory", icon: <Boxes className="h-5 w-5" /> },
-      { href: "/admin/scm/po", label: "Purchase Order", icon: <ClipboardList className="h-5 w-5" /> },
-      { href: "/admin/scm/iuran", label: "Iuran & Langganan", icon: <Wallet className="h-5 w-5" /> },
-      { href: "/admin/scm/saldo", label: "Saldo & Pencairan", icon: <Landmark className="h-5 w-5" /> },
-    ],
-  },
-  {
-    context: "MP",
-    title: "Marketplace — Seller & Buyer",
-    icon: <Store className="h-5 w-5" />,
-    children: [
-      { href: "/admin/mp/user", label: "Kelola Toko", icon: <Users className="h-5 w-5" /> },
-      { href: "/admin/mp/master", label: "Master Listing", icon: <Database className="h-5 w-5" /> },
-      { href: "/admin/mp/stok", label: "Monitoring Stok", icon: <PackageCheck className="h-5 w-5" /> },
-      { href: "/admin/mp/po", label: "Order & Delivery", icon: <ArrowRightLeft className="h-5 w-5" /> },
-      { href: "/admin/mp/iuran", label: "Komisi & Fee", icon: <ShieldCheck className="h-5 w-5" /> },
-      { href: "/admin/mp/saldo", label: "Saldo Seller", icon: <Wallet className="h-5 w-5" /> },
+      { href: "/scm/admin/akun", label: "Kelola Akun", icon: <Users className="h-5 w-5" /> },
+      { href: "/scm/admin/master", label: "Master SCM", icon: <Database className="h-5 w-5" /> },
+      { href: "/scm/admin/stok", label: "Stok & Inventory", icon: <Boxes className="h-5 w-5" /> },
+      { href: "/scm/admin/po", label: "Purchase Order", icon: <ClipboardList className="h-5 w-5" /> },
+      { href: "/scm/admin/iuran", label: "Iuran & Langganan", icon: <Wallet className="h-5 w-5" /> },
+      { href: "/scm/admin/saldo", label: "Saldo & Pencairan", icon: <Landmark className="h-5 w-5" /> },
     ],
   },
   {
     context: "ROOT",
     title: "Pengaturan",
-    icon: <Settings className="h-5 w-5" />,
-    children: [{ href: "/admin/akun", label: "Verifikasi & Akses", icon: <Settings className="h-5 w-5" /> }],
+    icon: <Settings2 className="h-5 w-5" />,
+    children: [{ href: "/scm/admin/akun", label: "Verifikasi & Akses", icon: <ShieldCheck className="h-5 w-5" /> }],
   },
 ];
 
 const CONTEXT_STYLE: Record<Group["context"], { text: string; bar: string }> = {
   ROOT: { text: "text-[#53616D]", bar: "bg-white/60" },
   SCM: { text: "text-[#53616D]", bar: "bg-white/60" },
-  MP: { text: "text-[#53616D]", bar: "bg-white/60" },
 };
 
 export default function AdminShell({
@@ -101,7 +84,7 @@ export default function AdminShell({
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
-  const [openCtx, setOpenCtx] = useState<Record<string, boolean>>({ SCM: true, MP: true });
+  const [openCtx, setOpenCtx] = useState<Record<string, boolean>>({ SCM: true });
   const profileRef = useRef<HTMLDivElement>(null);
   const notifRef = useRef<HTMLDivElement>(null);
 
@@ -115,7 +98,7 @@ export default function AdminShell({
   }, []);
 
   const initials = (userName || "A").charAt(0).toUpperCase();
-  const ctxActive = (ctx: "ROOT" | "SCM" | "MP") =>
+  const ctxActive = (ctx: "ROOT" | "SCM") =>
     adminNav.some((g) => g.context === ctx && g.children.some((c) => pathname === c.href || pathname.startsWith(c.href + "/")));
 
   function renderGroup(g: Group) {
@@ -209,10 +192,10 @@ export default function AdminShell({
               <img src="/Logo2 only1.png" alt="Mall ku" className="h-14 w-14 object-contain" />
             </button>
           ) : (
-            <Link href="/admin" className="flex items-center justify-center">
+            <Link href="/scm/admin" className="flex items-center justify-center">
               <span className="shrink-0 rounded-lg bg-white p-1">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/Logo2 only2.png" alt="Mall ku" className="h-14 w-auto object-contain" />
+                <img src="/Logo2-only2.png" alt="Mall ku" className="h-14 w-auto object-contain" />
               </span>
             </Link>
           )}
@@ -226,10 +209,6 @@ export default function AdminShell({
 
           <div className="pt-1">
             {adminNav.filter((g) => g.context === "SCM").map(renderGroup)}
-          </div>
-
-          <div className="pt-1">
-            {adminNav.filter((g) => g.context === "MP").map(renderGroup)}
           </div>
         </nav>
 

@@ -5,17 +5,15 @@ import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { useState, useRef, useEffect } from "react";
 import {
-  LayoutDashboard, Boxes, ClipboardList, Network, Wallet, Store, BadgePercent,
-  CreditCard, Settings, Bell, ChevronDown, Search, LogOut, Menu, PanelLeftClose,
-  User, Inbox, Store as StoreIcon,
+  LayoutDashboard, Boxes, ClipboardList, Network, Wallet, Settings, Bell,
+  ChevronDown, Search, LogOut, Menu, PanelLeftClose, User,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-// ===== Struktur menu dua konteks bisnis Toko =====
+// ===== Struktur menu dashboard Toko (SCM) =====
 interface Leaf { href: string; label: string; icon: React.ReactNode; }
 interface Group {
-  // konteks bisnis: SCM (beli grosir) / MP (jual eceran)
-  context: "ROOT" | "SCM" | "MP";
+  context: "ROOT" | "SCM";
   title: string;
   icon: React.ReactNode;
   children: Leaf[];
@@ -26,42 +24,30 @@ const tokoNav: Group[] = [
     context: "ROOT",
     title: "Dashboard Overview",
     icon: <LayoutDashboard className="h-5 w-5" />,
-    children: [{ href: "/seller", label: "Dashboard Overview", icon: <LayoutDashboard className="h-5 w-5" /> }],
+    children: [{ href: "/scm/seller", label: "Dashboard Overview", icon: <LayoutDashboard className="h-5 w-5" /> }],
   },
   {
     context: "SCM",
     title: "SCM — Belanja Grosir",
     icon: <Boxes className="h-5 w-5" />,
     children: [
-      { href: "/seller/produk", label: "Manajemen Produk", icon: <Boxes className="h-5 w-5" /> },
-      { href: "/seller/po", label: "Manajemen PO", icon: <ClipboardList className="h-5 w-5" /> },
-      { href: "/seller/jaringan", label: "Manajemen Jaringan", icon: <Network className="h-5 w-5" /> },
-      { href: "/seller/keuangan-scm", label: "Keuangan", icon: <Wallet className="h-5 w-5" /> },
-    ],
-  },
-  {
-    context: "MP",
-    title: "Marketplace — Jualan",
-    icon: <StoreIcon className="h-5 w-5" />,
-    children: [
-      { href: "/seller/listing", label: "Manajemen Produk", icon: <Store className="h-5 w-5" /> },
-      { href: "/seller/pesanan", label: "PO / Pesanan Masuk", icon: <Inbox className="h-5 w-5" /> },
-      { href: "/seller/diskon", label: "Kartu Diskon", icon: <BadgePercent className="h-5 w-5" /> },
-      { href: "/seller/saldo-mp", label: "Keuangan (Saldo)", icon: <CreditCard className="h-5 w-5" /> },
+      { href: "/scm/seller/produk", label: "Manajemen Produk", icon: <Boxes className="h-5 w-5" /> },
+      { href: "/scm/seller/po", label: "Manajemen PO", icon: <ClipboardList className="h-5 w-5" /> },
+      { href: "/scm/seller/jaringan", label: "Manajemen Jaringan", icon: <Network className="h-5 w-5" /> },
+      { href: "/scm/seller/keuangan-scm", label: "Keuangan", icon: <Wallet className="h-5 w-5" /> },
     ],
   },
   {
     context: "ROOT",
     title: "Pengaturan Akun",
     icon: <Settings className="h-5 w-5" />,
-    children: [{ href: "/seller/pengaturan", label: "Pengaturan Akun", icon: <Settings className="h-5 w-5" /> }],
+    children: [{ href: "/scm/seller/pengaturan", label: "Pengaturan Akun", icon: <Settings className="h-5 w-5" /> }],
   },
 ];
 
 const CONTEXT_STYLE: Record<Group["context"], { text: string; bar: string }> = {
   ROOT: { text: "text-[#53616D]", bar: "bg-white/60" },
   SCM: { text: "text-[#53616D]", bar: "bg-white/60" },
-  MP: { text: "text-[#53616D]", bar: "bg-white/60" },
 };
 export default function TokoShell({
   children, userName, userEmail, storeName,
@@ -73,7 +59,7 @@ export default function TokoShell({
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
-  const [openCtx, setOpenCtx] = useState<Record<string, boolean>>({ SCM: true, MP: true });
+  const [openCtx, setOpenCtx] = useState<Record<string, boolean>>({ SCM: true });
   const profileRef = useRef<HTMLDivElement>(null);
   const notifRef = useRef<HTMLDivElement>(null);
 
@@ -87,7 +73,7 @@ export default function TokoShell({
   }, []);
 
   const initials = (userName || "T").charAt(0).toUpperCase();
-  const ctxActive = (ctx: "ROOT" | "SCM" | "MP") =>
+  const ctxActive = (ctx: "ROOT" | "SCM") =>
     tokoNav.some((g) => g.context === ctx && g.children.some((c) => pathname === c.href || pathname.startsWith(c.href + "/")));
 
   // Render satu item (group ROOT = direct link; SCM/MP = expandable super-group)
@@ -156,10 +142,10 @@ export default function TokoShell({
               <img src="/Logo2 only1.png" alt="Mall ku" className="h-14 w-14 object-contain" />
             </button>
           ) : (
-            <Link href="/seller" className="flex items-center justify-center">
+            <Link href="/scm/seller" className="flex items-center justify-center">
               <span className="shrink-0 rounded-lg bg-white p-1">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/Logo2 only2.png" alt="Mall ku SCM" className="h-14 w-auto object-contain" />
+                <img src="/Logo2-only2.png" alt="Mall ku SCM" className="h-14 w-auto object-contain" />
               </span>
             </Link>
           )}
@@ -177,11 +163,6 @@ export default function TokoShell({
           <div className="pt-1">
             {tokoNav.filter((g) => g.context === "SCM").map(renderGroup)}
           </div>
-
-          {/* MP super-group */}
-          <div className="pt-1">
-            {tokoNav.filter((g) => g.context === "MP").map(renderGroup)}
-          </div>
         </nav>
 
         {/* Bottom user */}
@@ -194,7 +175,7 @@ export default function TokoShell({
                   <p className="truncate text-xs font-semibold text-white">{storeName || userName || "Toko"}</p>
                   <p className="truncate text-[10px] text-white/70">{userEmail}</p>
                 </div>
-                <Link href="/seller/pengaturan" className="text-white/75 hover:text-white" title="Pengaturan"><Settings className="h-4 w-4" /></Link>
+                <Link href="/scm/seller/pengaturan" className="text-white/75 hover:text-white" title="Pengaturan"><Settings className="h-4 w-4" /></Link>
               </>
             )}
           </div>
@@ -264,11 +245,8 @@ export default function TokoShell({
                     <p className="truncate text-sm font-bold text-slate-800">{storeName || userName || "Toko"}</p>
                     <p className="truncate text-[11px] text-slate-400">{userEmail}</p>
                   </div>
-                  <Link href="/seller/pengaturan" className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50">
+                  <Link href="/scm/seller/pengaturan" className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50">
                     <User className="h-4 w-4" /> Profil Saya
-                  </Link>
-                  <Link href="/mp" target="_blank" className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50">
-                    <Store className="h-4 w-4" /> Lihat Storefront MP
                   </Link>
                   <div className="border-t border-slate-100" />
                   <button onClick={() => signOut({ callbackUrl: "/scm" })}

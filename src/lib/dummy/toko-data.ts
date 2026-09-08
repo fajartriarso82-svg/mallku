@@ -99,3 +99,21 @@ export const dummySalesMP30: { tanggal: string; nominal: number }[] = [
   { tanggal: "2026-09-03", nominal: 380000 }, { tanggal: "2026-09-04", nominal: 460000 },
   { tanggal: "2026-09-05", nominal: 720000 }, { tanggal: "2026-09-06", nominal: 281000 },
 ];
+
+export const dummyBelanjaSCM30: { tanggal: string; nominal: number }[] = [
+  { tanggal: "2026-08-08", nominal: 15200000 }, { tanggal: "2026-08-09", nominal: 12800000 },
+  { tanggal: "2026-08-10", nominal: 23100000 }, { tanggal: "2026-08-11", nominal: 18600000 },
+  { tanggal: "2026-08-12", nominal: 31200000 }, { tanggal: "2026-08-13", nominal: 20500000 },
+  { tanggal: "2026-08-14", nominal: 26400000 }, { tanggal: "2026-08-15", nominal: 42800000 },
+  { tanggal: "2026-08-16", nominal: 28800000 }, { tanggal: "2026-08-17", nominal: 19400000 },
+  { tanggal: "2026-08-18", nominal: 35200000 }, { tanggal: "2026-08-19", nominal: 31600000 },
+  { tanggal: "2026-08-20", nominal: 24800000 }, { tanggal: "2026-08-21", nominal: 38600000 },
+  { tanggal: "2026-08-22", nominal: 46200000 }, { tanggal: "2026-08-23", nominal: 52400000 },
+  { tanggal: "2026-08-24", nominal: 30600000 }, { tanggal: "2026-08-25", nominal: 48800000 },
+  { tanggal: "2026-08-26", nominal: 41400000 }, { tanggal: "2026-08-27", nominal: 33800000 },
+  { tanggal: "2026-08-28", nominal: 55600000 }, { tanggal: "2026-08-29", nominal: 39600000 },
+  { tanggal: "2026-08-30", nominal: 47800000 }, { tanggal: "2026-08-31", nominal: 61800000 },
+  { tanggal: "2026-09-01", nominal: 43600000 }, { tanggal: "2026-09-02", nominal: 52800000 },
+  { tanggal: "2026-09-03", nominal: 38200000 }, { tanggal: "2026-09-04", nominal: 46800000 },
+  { tanggal: "2026-09-05", nominal: 72600000 }, { tanggal: "2026-09-06", nominal: 28000000 },
+];

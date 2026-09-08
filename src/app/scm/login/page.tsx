@@ -41,9 +41,9 @@ export default function SCMLoginPage() {
     const role = (session?.user as { role?: string } | undefined)?.role;
     const status = (session?.user as { statusAkun?: string } | undefined)?.statusAkun;
     const dashboardByRole: Record<string, string> = {
-      ADMIN: "/admin",
+      ADMIN: "/scm/admin",
       DISTRIBUTOR: status === "AKTIF" ? "/scm/distributor" : "/scm/distributor/pengaturan",
-      TOKO: status === "AKTIF" ? "/scm/seller" : "/seller/pengaturan",
+      TOKO: status === "AKTIF" ? "/scm/seller" : "/scm/seller/pengaturan",
     };
 
     router.push(dashboardByRole[role ?? ""] ?? "/scm");
