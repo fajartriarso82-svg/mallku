@@ -36,7 +36,17 @@ export default function SCMLoginPage() {
       return;
     }
 
-    router.push("/");
+    const sessionResponse = await fetch("/api/auth/session");
+    const session = await sessionResponse.json();
+    const role = (session?.user as { role?: string } | undefined)?.role;
+    const status = (session?.user as { statusAkun?: string } | undefined)?.statusAkun;
+    const dashboardByRole: Record<string, string> = {
+      ADMIN: "/admin",
+      DISTRIBUTOR: status === "AKTIF" ? "/scm/distributor" : "/scm/distributor/pengaturan",
+      TOKO: status === "AKTIF" ? "/scm/seller" : "/seller/pengaturan",
+    };
+
+    router.push(dashboardByRole[role ?? ""] ?? "/scm");
     router.refresh();
   }
 
@@ -165,7 +175,7 @@ export default function SCMLoginPage() {
             <div className="mt-8 pt-6 border-t border-slate-100 text-center text-xs text-slate-500">
               Belum punya akun?{" "}
               <Link
-                href="/register"
+                href="/scm/register"
                 className="font-bold text-[#247094] hover:text-[#10245a] hover:underline ml-1"
               >
                 Registrasi

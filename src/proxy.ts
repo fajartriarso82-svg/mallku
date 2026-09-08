@@ -6,19 +6,19 @@ const publicRoutes = [
   "/",
   "/login",
   "/register",
-  "/auth/login",
-  "/auth/register",
   "/scm",
   "/scm/login",
+  "/scm/register",
   "/scm/forgot-password",
   "/mp"
 ];
-const authRoutes = ["/login", "/register", "/auth/login", "/auth/register", "/scm", "/scm/login", "/scm/forgot-password"];
+const authRoutes = ["/login", "/register", "/scm", "/scm/login", "/scm/register", "/scm/forgot-password"];
 
 export default auth((req) => {
   const { nextUrl } = req;
   const isLoggedIn = !!req.auth;
-  const userRole = (req.auth?.user as any)?.role;
+  const userRole = (req.auth?.user as { role?: string } | undefined)?.role;
+  const accountStatus = (req.auth?.user as { statusAkun?: string } | undefined)?.statusAkun;
   const host = req.headers.get("host") || "";
 
   // Dukungan multi-domain & subdomain
@@ -37,7 +37,7 @@ export default auth((req) => {
 
   // Sudah login tapi akses auth routes → redirect ke dashboard masing-masing role
   if (isLoggedIn && isAuthRoute) {
-    return NextResponse.redirect(new URL(getDashboardUrl(userRole), nextUrl));
+    return NextResponse.redirect(new URL(getDashboardUrl(userRole ?? ""), nextUrl));
   }
 
   // Belum login dan bukan public route
@@ -45,7 +45,7 @@ export default auth((req) => {
     if (isSCMSubdomain || nextUrl.pathname.startsWith("/scm")) {
       return NextResponse.redirect(new URL("/scm", nextUrl));
     }
-    return NextResponse.redirect(new URL("/login", nextUrl));
+    return NextResponse.redirect(new URL("/mp/login", nextUrl));
   }
 
   // Role-based access control
@@ -60,12 +60,23 @@ export default auth((req) => {
       !nextUrl.pathname.startsWith("/scm/login") &&
       !nextUrl.pathname.startsWith("/scm/forgot-password") &&
       nextUrl.pathname !== "/scm" &&
-      !["DISTRIBUTOR", "TOKO", "ADMIN"].includes(userRole)
+      !["DISTRIBUTOR", "TOKO", "ADMIN"].includes(userRole ?? "")
     ) {
       return NextResponse.redirect(new URL("/403", nextUrl));
     }
+    if (
+      ["TOKO", "DISTRIBUTOR"].includes(userRole ?? "") &&
+      accountStatus !== "AKTIF" &&
+      (nextUrl.pathname.startsWith("/scm/") || nextUrl.pathname.startsWith("/seller/")) &&
+      !nextUrl.pathname.startsWith("/scm/login") &&
+      !nextUrl.pathname.startsWith("/scm/register") &&
+      !nextUrl.pathname.startsWith("/scm/forgot-password") &&
+      !nextUrl.pathname.startsWith(userRole === "TOKO" ? "/seller/pengaturan" : "/scm/distributor/pengaturan")
+    ) {
+      return NextResponse.redirect(new URL(userRole === "TOKO" ? "/seller/pengaturan" : "/scm/distributor/pengaturan", nextUrl));
+    }
     // Dashboard seller → hanya TOKO
-    if (nextUrl.pathname.startsWith("/seller") && !["TOKO", "ADMIN"].includes(userRole)) {
+    if (nextUrl.pathname.startsWith("/seller") && !["TOKO", "ADMIN"].includes(userRole ?? "")) {
       return NextResponse.redirect(new URL("/403", nextUrl));
     }
   }
@@ -80,7 +91,7 @@ function getDashboardUrl(role: string): string {
     case "DISTRIBUTOR":
       return "/scm/distributor";
     case "TOKO":
-      return "/seller";
+      return "/scm/seller";
     case "BUYER":
       return "/mp";
     default:

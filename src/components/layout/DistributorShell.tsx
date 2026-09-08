@@ -103,7 +103,7 @@ export default function DistributorShell({
               return (
                 <Link key={group.label} href={t.href} title={collapsed ? t.label : undefined}
                   className={cn(
-                    "flex items-center rounded-lg px-3 py-2.5 text-[13px] font-medium transition",
+                    "flex items-center rounded-lg px-3 py-2.5 text-sm font-medium transition",
                     collapsed ? "md:justify-center" : "gap-3",
                     (pathname === t.href || pathname.startsWith(t.href + "/")) ? "bg-[#DCE8F3] font-semibold text-[#173B68]" : "text-[#53616D] hover:bg-white/70 hover:text-[#173B68]"
                   )}>
@@ -119,7 +119,7 @@ export default function DistributorShell({
                   onClick={() => setOpenGroups((p) => (p.includes(group.label) ? p.filter((x) => x !== group.label) : [...p, group.label]))}
                   title={collapsed ? group.label : undefined}
                   className={cn(
-                    "flex w-full items-center rounded-lg px-3 py-2.5 text-[13px] font-medium transition",
+                    "flex w-full items-center rounded-lg px-3 py-2.5 text-sm font-medium transition",
                     collapsed ? "md:justify-center" : "justify-between gap-3",
                     active ? "bg-[#DCE8F3] text-[#173B68]" : "text-[#53616D] hover:bg-white/70 hover:text-[#173B68]"
                   )}>
@@ -136,7 +136,7 @@ export default function DistributorShell({
                       return (
                         <Link key={child.href} href={child.href}
                           className={cn(
-                            "flex items-center rounded-md px-2.5 py-2 text-[12.5px] transition",
+                            "flex items-center rounded-md px-2.5 py-2 text-sm font-medium transition",
                             ca ? "bg-[#DCE8F3] font-semibold text-[#173B68]" : "text-[#53616D] hover:bg-white/70 hover:text-[#173B68]"
                           )}>
                           <span className="truncate">{child.label}</span>
@@ -233,16 +233,16 @@ export default function DistributorShell({
                     <p className="truncate text-sm font-bold text-slate-800">{userName || "Pengguna"}</p>
                     <p className="truncate text-[11px] text-slate-400">{userEmail}</p>
                   </div>
-                  <Link href="/scm/distributor/pengaturan" className="flex items-center gap-2.5 px-4 py-2.5 text-[13px] text-slate-600 hover:bg-slate-50">
+                  <Link href="/scm/distributor/pengaturan" className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50">
                     <User className="h-4 w-4" /> Profil Saya
                   </Link>
-                  <Link href="/scm" className="flex items-center gap-2.5 px-4 py-2.5 text-[13px] text-slate-600 hover:bg-slate-50">
+                  <Link href="/scm" className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50">
                     <Settings className="h-4 w-4" /> Bantuan &amp; Panduan
                   </Link>
                   <div className="border-t border-slate-100" />
                   <button
                     onClick={() => signOut({ callbackUrl: "/scm" })}
-                    className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-[13px] font-semibold text-rose-600 hover:bg-rose-50">
+                    className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-sm font-bold text-rose-600 hover:bg-rose-50">
                     <LogOut className="h-4 w-4" /> Keluar Akun
                   </button>
                 </div>

@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Eye, EyeOff, Lock, Mail, AlertCircle, ArrowRight } from "lucide-react";
 
-export default function SCMLoginPage() {
+export default function MPLoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -36,7 +36,7 @@ export default function SCMLoginPage() {
       return;
     }
 
-    router.push("/");
+    router.push("/mp");
     router.refresh();
   }
 
@@ -118,7 +118,7 @@ export default function SCMLoginPage() {
                     Password
                   </label>
                   <Link
-                    href="/scm/forgot-password"
+                    href="/auth/login"
                     className="text-xs font-semibold text-[#247094] hover:text-[#10245a] hover:underline"
                   >
                     Lupa password?
@@ -168,7 +168,7 @@ export default function SCMLoginPage() {
                 href="/register"
                 className="font-bold text-[#247094] hover:text-[#10245a] hover:underline ml-1"
               >
-                Registrasi
+                    Daftar sebagai pembeli
               </Link>
             </div>
 
@@ -176,8 +176,8 @@ export default function SCMLoginPage() {
             <div className="mt-6 p-3.5 rounded-xl bg-slate-50 border border-slate-100 text-[11px] text-slate-500 space-y-1">
               <span className="font-bold text-slate-700">Akun Uji Coba Demo:</span>
               <div className="grid grid-cols-2 gap-2 pt-1 font-mono text-[10px]">
-                <div>• Dist: distributor@mallku.id / dist123</div>
-                <div>• Toko: toko@mallku.id / toko123</div>
+                <div>• Buyer: buyer@mallku.id / buyer123</div>
+                <div>• Belanja dari toko lokal</div>
               </div>
             </div>
 
@@ -187,7 +187,7 @@ export default function SCMLoginPage() {
 
       {/* Footer Minimalis */}
       <footer className="w-full py-4 text-center text-xs text-slate-400 border-t border-slate-100 bg-white">
-        © {new Date().getFullYear()} Mall ku SCM. All Rights Reserved.
+        © {new Date().getFullYear()} Mall ku Marketplace. All Rights Reserved.
       </footer>
     </div>
   );

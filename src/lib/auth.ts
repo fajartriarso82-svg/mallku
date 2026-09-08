@@ -5,6 +5,12 @@ import { prisma } from "@/lib/db";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 
+type AuthUser = {
+  id: string;
+  role: string;
+  statusAkun: string;
+};
+
 const loginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(6),
@@ -14,8 +20,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
   session: { strategy: "jwt" },
   pages: {
-    signIn: "/login",
-    error: "/login",
+    signIn: "/mp/login",
+    error: "/mp/login",
   },
   providers: [
     Credentials({
@@ -67,16 +73,28 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
-        token.role = (user as any).role;
-        token.statusAkun = (user as any).statusAkun;
+        const authUser = user as AuthUser;
+        token.role = authUser.role;
+        token.statusAkun = authUser.statusAkun;
+      }
+      if (token.id) {
+        const currentUser = await prisma.user.findUnique({
+          where: { id: token.id as string },
+          select: { role: true, statusAkun: true },
+        });
+        if (currentUser) {
+          token.role = currentUser.role;
+          token.statusAkun = currentUser.statusAkun;
+        }
       }
       return token;
     },
     async session({ session, token }) {
       if (token) {
         session.user.id = token.id as string;
-        (session.user as any).role = token.role;
-        (session.user as any).statusAkun = token.statusAkun;
+        const sessionUser = session.user as typeof session.user & { role?: string; statusAkun?: string };
+        sessionUser.role = token.role as string;
+        sessionUser.statusAkun = token.statusAkun as string;
       }
       return session;
     },

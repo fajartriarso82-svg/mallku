@@ -7,7 +7,7 @@ import { useState, useRef, useEffect } from "react";
 import {
   LayoutDashboard, Boxes, ClipboardList, Network, Wallet, Store, BadgePercent,
   CreditCard, Settings, Bell, ChevronDown, Search, LogOut, Menu, PanelLeftClose,
-  User, Building2, Send, Inbox, Truck, Landmark, Store as StoreIcon,
+  User, Inbox, Store as StoreIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -97,7 +97,7 @@ export default function TokoShell({
       const active = pathname === leaf.href || pathname.startsWith(leaf.href + "/");
       return (
         <Link key={g.title} href={leaf.href} title={collapsed ? leaf.label : undefined}
-          className={cn("flex items-center rounded-xl px-3 py-2.5 text-[13px] font-semibold transition",
+          className={cn("flex items-center rounded-xl px-3 py-2.5 text-sm font-semibold transition",
             collapsed ? "md:justify-center" : "gap-3",
             active ? "bg-[#DCE8F3] text-[#173B68]" : "text-[#53616D] hover:bg-white/70 hover:text-[#173B68]")}>
           <span className="shrink-0">{g.icon}</span>
@@ -116,7 +116,7 @@ export default function TokoShell({
           <span className="flex min-w-0 items-center gap-3">
             <span className="shrink-0">{g.icon}</span>
             {!collapsed && (
-              <span className={cn("truncate text-[12px] font-semibold", style.text)}>{g.title}</span>
+              <span className={cn("truncate text-sm font-semibold", style.text)}>{g.title}</span>
             )}
           </span>
           {!collapsed && (
@@ -130,7 +130,7 @@ export default function TokoShell({
               const ca = pathname === c.href || pathname.startsWith(c.href + "/");
               return (
                 <Link key={c.href} href={c.href}
-                  className={cn("flex items-center rounded-lg px-2.5 py-2 text-[12.5px] transition", ca ? "bg-[#DCE8F3] font-semibold text-[#173B68]" : "text-[#53616D] hover:bg-white/70 hover:text-[#173B68]")}>
+                  className={cn("flex items-center rounded-lg px-2.5 py-2 text-sm font-medium transition", ca ? "bg-[#DCE8F3] font-semibold text-[#173B68]" : "text-[#53616D] hover:bg-white/70 hover:text-[#173B68]")}>
                   <span className="mr-2.5">{c.icon}</span>
                   <span className="truncate">{c.label}</span>
                 </Link>
@@ -264,15 +264,15 @@ export default function TokoShell({
                     <p className="truncate text-sm font-bold text-slate-800">{storeName || userName || "Toko"}</p>
                     <p className="truncate text-[11px] text-slate-400">{userEmail}</p>
                   </div>
-                  <Link href="/seller/pengaturan" className="flex items-center gap-2.5 px-4 py-2.5 text-[13px] text-slate-600 hover:bg-slate-50">
+                  <Link href="/seller/pengaturan" className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50">
                     <User className="h-4 w-4" /> Profil Saya
                   </Link>
-                  <Link href="/mp" target="_blank" className="flex items-center gap-2.5 px-4 py-2.5 text-[13px] text-slate-600 hover:bg-slate-50">
+                  <Link href="/mp" target="_blank" className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50">
                     <Store className="h-4 w-4" /> Lihat Storefront MP
                   </Link>
                   <div className="border-t border-slate-100" />
                   <button onClick={() => signOut({ callbackUrl: "/scm" })}
-                    className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-[13px] font-semibold text-rose-600 hover:bg-rose-50">
+                    className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-sm font-bold text-rose-600 hover:bg-rose-50">
                     <LogOut className="h-4 w-4" /> Keluar Akun
                   </button>
                 </div>

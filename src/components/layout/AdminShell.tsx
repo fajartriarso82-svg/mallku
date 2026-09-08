@@ -53,7 +53,7 @@ const adminNav: Group[] = [
     icon: <Building2 className="h-5 w-5" />,
     children: [
       { href: "/admin/scm/user", label: "Kelola Akun", icon: <Users className="h-5 w-5" /> },
-      { href: "/admin/scm/master", label: "Master Produk", icon: <Database className="h-5 w-5" /> },
+      { href: "/admin/scm/master", label: "Master SCM", icon: <Database className="h-5 w-5" /> },
       { href: "/admin/scm/stok", label: "Stok & Inventory", icon: <Boxes className="h-5 w-5" /> },
       { href: "/admin/scm/po", label: "Purchase Order", icon: <ClipboardList className="h-5 w-5" /> },
       { href: "/admin/scm/iuran", label: "Iuran & Langganan", icon: <Wallet className="h-5 w-5" /> },
@@ -128,7 +128,7 @@ export default function AdminShell({
           href={leaf.href}
           title={collapsed ? leaf.label : undefined}
           className={cn(
-            "flex items-center rounded-xl px-3 py-2.5 text-[13px] font-semibold transition",
+            "flex items-center rounded-xl px-3 py-2.5 text-sm font-semibold transition",
             collapsed ? "md:justify-center" : "gap-3",
             active ? "bg-[#DCE8F3] text-[#173B68]" : "text-[#53616D] hover:bg-white/70 hover:text-[#173B68]",
           )}
@@ -163,7 +163,7 @@ export default function AdminShell({
           <span className="flex min-w-0 items-center gap-3">
             <span className="shrink-0">{g.icon}</span>
             {!collapsed && (
-              <span className={cn("truncate text-[12px] font-semibold", style.text)}>{g.title}</span>
+              <span className={cn("truncate text-sm font-semibold", style.text)}>{g.title}</span>
             )}
           </span>
           {!collapsed && <ChevronDown className={cn("h-3.5 w-3.5 shrink-0 text-[#687681] transition-transform", open && "rotate-180")} />}
@@ -178,7 +178,7 @@ export default function AdminShell({
                   key={c.href}
                   href={c.href}
                   className={cn(
-                    "flex items-center rounded-lg px-2.5 py-2 text-[12.5px] transition",
+                    "flex items-center rounded-lg px-2.5 py-2 text-sm font-medium transition",
                     activeItem ? "bg-[#DCE8F3] font-semibold text-[#173B68]" : "text-[#53616D] hover:bg-white/70 hover:text-[#173B68]",
                   )}
                 >
@@ -242,7 +242,7 @@ export default function AdminShell({
                   <p className="truncate text-xs font-semibold text-[#26343F]">{userName || "Administrator"}</p>
                   <p className="truncate text-[10px] text-[#687681]">{userEmail}</p>
                 </div>
-                <button onClick={() => signOut({ callbackUrl: "/auth/login" })} className="text-[#687681] hover:text-[#173B68]" title="Keluar">
+                <button onClick={() => signOut({ callbackUrl: "/scm" })} className="text-[#687681] hover:text-[#173B68]" title="Keluar">
                   <LogOut className="h-4 w-4" />
                 </button>
               </>
@@ -307,7 +307,7 @@ export default function AdminShell({
                     <p className="text-xs text-[#687681]">Email</p>
                     <p className="truncate text-sm font-semibold text-[#26343F]">{userEmail || "admin@mallku.id"}</p>
                   </div>
-                  <button onClick={() => signOut({ callbackUrl: "/auth/login" })} className="flex w-full items-center justify-between rounded-lg px-2 py-2 text-sm font-medium text-[#53616D] hover:bg-[#F5F7F8]">
+                  <button onClick={() => signOut({ callbackUrl: "/scm" })} className="flex w-full items-center justify-between rounded-lg px-2 py-2 text-sm font-medium text-[#53616D] hover:bg-[#F5F7F8]">
                     <span>Keluar</span>
                     <LogOut className="h-4 w-4" />
                   </button>

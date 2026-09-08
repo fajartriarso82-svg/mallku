@@ -5,7 +5,8 @@ import DistributorShell from "@/components/layout/DistributorShell";
 
 export default async function DistributorLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
-  if (!session || (session.user as any)?.role !== "DISTRIBUTOR") redirect("/login");
+  const role = (session?.user as { role?: string } | undefined)?.role;
+  if (!session || role !== "DISTRIBUTOR") redirect("/scm/login");
 
   let companyName = "PT Berkah Distribusi";
   try {

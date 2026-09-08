@@ -86,6 +86,42 @@ async function main() {
   console.log(`${subKategoriData.length} Sub Kategori created`);
 
   // ============================================================
+  // MASTER SCM
+  // ============================================================
+  for (const nama of ["BCA", "BRI", "Mandiri", "BNI", "Danamon"]) {
+    await prisma.bankMaster.upsert({ where: { nama }, update: {}, create: { nama } });
+  }
+
+  for (const unit of [
+    { nama: "Pieces", singkatan: "PCS" },
+    { nama: "Dus", singkatan: "DUS" },
+    { nama: "Karton", singkatan: "KRT" },
+    { nama: "Kilogram", singkatan: "KG" },
+    { nama: "Liter", singkatan: "L" },
+  ]) {
+    await prisma.unitMaster.upsert({ where: { nama: unit.nama }, update: {}, create: unit });
+  }
+
+  const brandSeed = [
+    { nama: "Nusantara", subBrands: ["Premium", "Ekonomis"] },
+    { nama: "Berkah Jaya", subBrands: ["Hemat", "Pilihan"] },
+    { nama: "Mitra Pangan", subBrands: ["Segar", "Pro"] },
+  ];
+  for (const brand of brandSeed) {
+    const record = await prisma.brandMaster.upsert({ where: { nama: brand.nama }, update: {}, create: { nama: brand.nama } });
+    for (const nama of brand.subBrands) {
+      await prisma.subBrandMaster.upsert({ where: { brandId_nama: { brandId: record.id, nama } }, update: {}, create: { brandId: record.id, nama } });
+    }
+  }
+
+  await prisma.scmSetting.upsert({
+    where: { id: "scm-default-settings" },
+    update: {},
+    create: { id: "scm-default-settings" },
+  });
+  console.log("Master SCM created");
+
+  // ============================================================
   // DEMO: DISTRIBUTOR
   // ============================================================
   const distPass = await bcrypt.hash("dist123", 12);

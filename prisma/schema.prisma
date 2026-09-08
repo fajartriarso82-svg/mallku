@@ -157,9 +157,13 @@ model DistributorProfile {
   kodePos       String?
   noNib         String?
   noNpwp        String?
+  dokumenNibUrl String?
+  dokumenNpwpUrl String?
   dokumenUrls   String[]
   catatan       String? @db.Text
   websiteUrl    String?
+  gudang        Gudang[]
+  rekening      RekeningBank[]
   user          User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   produkMaster ProdukMasterSCM[]
@@ -190,10 +194,14 @@ model TokoProfile {
   lng           Float?
   noNib         String?
   noNpwp        String?
+  dokumenNibUrl String?
+  dokumenNpwpUrl String?
   dokumenUrls   String[]
   catatan       String? @db.Text
   tokoMpAktif   Boolean @default(false)
   jamBuka       String?
+  gudang        Gudang[]
+  rekening      RekeningBank[]
   metodePengirimanDiDukung ModePengiriman[]
   user          User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -206,6 +214,45 @@ model TokoProfile {
   updatedAt DateTime @updatedAt
 
   @@map("toko_profiles")
+}
+
+model Gudang {
+  id              String             @id @default(cuid())
+  nama            String
+  alamatLengkap   String
+  provinsi        String
+  kabupatenKota   String
+  kecamatan       String
+  desa            String?
+  kodePos         String?
+  distributorId   String?
+  tokoId          String?
+  distributor     DistributorProfile? @relation(fields: [distributorId], references: [id], onDelete: Cascade)
+  toko            TokoProfile?       @relation(fields: [tokoId], references: [id], onDelete: Cascade)
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  @@index([distributorId])
+  @@index([tokoId])
+  @@map("gudang")
+}
+
+model RekeningBank {
+  id              String             @id @default(cuid())
+  bankNama        String
+  nomorRekening   String
+  namaPemilik     String
+  utama           Boolean            @default(false)
+  distributorId   String?
+  tokoId          String?
+  distributor     DistributorProfile? @relation(fields: [distributorId], references: [id], onDelete: Cascade)
+  toko            TokoProfile?       @relation(fields: [tokoId], references: [id], onDelete: Cascade)
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  @@index([distributorId])
+  @@index([tokoId])
+  @@map("rekening_bank")
 }
 
 model BuyerProfile {
@@ -268,6 +315,67 @@ model KategoriMaster {
   updatedAt DateTime @updatedAt
 
   @@map("kategori_master")
+}
+
+model BankMaster {
+  id        String   @id @default(cuid())
+  nama      String   @unique
+  aktif     Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("master_bank")
+}
+
+model UnitMaster {
+  id        String   @id @default(cuid())
+  nama      String   @unique
+  singkatan String
+  aktif     Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("master_unit")
+}
+
+model BrandMaster {
+  id        String   @id @default(cuid())
+  nama      String   @unique
+  aktif     Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  subBrand SubBrandMaster[]
+
+  @@map("master_brand")
+}
+
+model SubBrandMaster {
+  id        String       @id @default(cuid())
+  brandId   String
+  nama      String
+  aktif     Boolean      @default(true)
+  brand     BrandMaster  @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@unique([brandId, nama])
+  @@map("master_sub_brand")
+}
+
+model ScmSetting {
+  id                      String   @id @default(cuid())
+  minimalPenarikan        Decimal  @default(0) @db.Decimal(15, 2)
+  biayaBankPenarikan      Decimal  @default(0) @db.Decimal(15, 2)
+  batasNilaiPg            Decimal  @default(0) @db.Decimal(15, 2)
+  biayaPayoutDibawahBatas Decimal  @default(0) @db.Decimal(15, 2)
+  biayaPayoutDiatasBatas  Decimal  @default(0) @db.Decimal(15, 2)
+  limitPoDistributor      Decimal  @default(0) @db.Decimal(15, 2)
+  limitPoToko             Decimal  @default(0) @db.Decimal(15, 2)
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  @@map("scm_settings")
 }
 
 model KategoriProduk {
