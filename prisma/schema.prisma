@@ -3,6 +3,8 @@
 
 generator client {
   provider = "prisma-client-js"
+  // Pastikan engine tersedia di Vercel (linux-musl) saat build
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
 
 datasource db {
