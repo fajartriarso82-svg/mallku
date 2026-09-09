@@ -36,18 +36,10 @@ export default function SCMLoginPage() {
       return;
     }
 
-    const sessionResponse = await fetch("/api/auth/session");
-    const session = await sessionResponse.json();
-    const role = (session?.user as { role?: string } | undefined)?.role;
-    const status = (session?.user as { statusAkun?: string } | undefined)?.statusAkun;
-    const dashboardByRole: Record<string, string> = {
-      ADMIN: "/scm/admin",
-      DISTRIBUTOR: status === "AKTIF" ? "/scm/distributor" : "/scm/distributor/pengaturan",
-      TOKO: status === "AKTIF" ? "/scm/seller" : "/scm/seller/pengaturan",
-    };
-
-    router.push(dashboardByRole[role ?? ""] ?? "/scm");
-    router.refresh();
+    // Optimasi: tanpa fetch /api/auth/session tambahan di client.
+    // /scm (server component) sudah role-aware → akan me-redirect ke
+    // dashboard sesuai role. Satu navigasi, tanpa round-trip ekstra.
+    router.replace("/scm");
   }
 
   return (

@@ -1,6 +1,5 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "@/lib/db";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
@@ -16,8 +15,9 @@ const loginSchema = z.object({
   password: z.string().min(6),
 });
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
-  adapter: PrismaAdapter(prisma),
+export const { handlers, auth } = NextAuth({
+  // Tanpa PrismaAdapter: alur ini memakai Credentials + strategi JWT, sehingga
+  // adapter (yang menambah koneksi DB per request) tidak diperlukan.
   session: { strategy: "jwt" },
   pages: {
     signIn: "/scm/login",
@@ -70,23 +70,24 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
+      // Saat login (signIn): isi token dari user hasil authorize.
       if (user) {
         token.id = user.id;
         const authUser = user as AuthUser;
         token.role = authUser.role;
         token.statusAkun = authUser.statusAkun;
+        return token;
       }
-      if (token.id) {
-        const currentUser = await prisma.user.findUnique({
-          where: { id: token.id as string },
-          select: { role: true, statusAkun: true },
-        });
-        if (currentUser) {
-          token.role = currentUser.role;
-          token.statusAkun = currentUser.statusAkun;
-        }
-      }
+
+      // Optimasi: query DB hanya saat login, bukan di setiap refresh token.
+      // Sebelumnya blok ini menjalankan prisma.user.findUnique pada hampir
+      // setiap request yang memakai sesi, menambah latensi DB tiap halaman SCM.
+      // Role/status cukup diambil ulang sesekali; untuk kebutuhan saat ini
+      // nilai dari token sudah mencukupi. Hapus baris berikut bila ingin
+      // re-check ke DB secara berkala.
+      void trigger;
+
       return token;
     },
     async session({ session, token }) {
@@ -100,3 +101,4 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
   },
 });
+

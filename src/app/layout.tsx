@@ -25,7 +25,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="id" className={lato.variable}>
+    <html lang="id" className={lato.variable} data-scroll-behavior="smooth">
       <body className={lato.className}>
         {children}
       </body>
