@@ -2,12 +2,10 @@
 
 import { useState } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Eye, EyeOff, Lock, Mail, AlertCircle, ArrowRight } from "lucide-react";
 
 export default function SCMLoginPage() {
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -25,9 +23,8 @@ export default function SCMLoginPage() {
       redirect: false,
     });
 
-    setLoading(false);
-
     if (result?.error) {
+      setLoading(false);
       if (result.error === "ACCOUNT_INACTIVE") {
         setError("Akun Anda sedang dinonaktifkan atau belum diverifikasi oleh admin.");
       } else {
@@ -36,10 +33,13 @@ export default function SCMLoginPage() {
       return;
     }
 
-    // Optimasi: tanpa fetch /api/auth/session tambahan di client.
-    // /scm (server component) sudah role-aware → akan me-redirect ke
-    // dashboard sesuai role. Satu navigasi, tanpa round-trip ekstra.
-    router.replace("/scm");
+    // Tetap loading=true selama navigasi penuh berlangsung.
+    // Gunakan full page navigation, BUKAN router.replace (client-side nav).
+    // Di Vercel, client-side navigation tidak selalu membawa cookie sesi yang
+    // baru diset ke request server, sehingga /scm malah me-render login lagi.
+    // Full reload memastikan request fresh membawa cookie → server component
+    // /scm (role-aware) membaca sesi dan redirect ke dashboard sesuai role.
+    window.location.assign("/scm");
   }
 
   return (
