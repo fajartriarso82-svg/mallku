@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { signIn } from "next-auth/react";
+import { signIn, getSession } from "next-auth/react";
 import Link from "next/link";
 import { Eye, EyeOff, Lock, Mail, AlertCircle, ArrowRight } from "lucide-react";
 
@@ -33,13 +33,26 @@ export default function SCMLoginPage() {
       return;
     }
 
-    // Tetap loading=true selama navigasi penuh berlangsung.
-    // Gunakan full page navigation, BUKAN router.replace (client-side nav).
-    // Di Vercel, client-side navigation tidak selalu membawa cookie sesi yang
-    // baru diset ke request server, sehingga /scm malah me-render login lagi.
-    // Full reload memastikan request fresh membawa cookie → server component
-    // /scm (role-aware) membaca sesi dan redirect ke dashboard sesuai role.
-    window.location.assign("/scm");
+    // Verifikasi sesi benar-benar terbentuk (krusial di Vercel). Jika cookie
+    // sesi belum terbaca, tampilkan pesan yang membantu diagnosis, bukan diam
+    // kembali ke halaman login.
+    let session = null;
+    try {
+      session = await getSession();
+    } catch {
+      session = null;
+    }
+
+    if (session?.user) {
+      // Full page navigation agar request fresh membawa cookie ke /scm
+      // (server component role-aware yang redirect ke dashboard sesuai role).
+      window.location.assign("/scm");
+    } else {
+      setLoading(false);
+      setError(
+        "Login berhasil, tetapi sesi tidak terbentuk. Ini biasanya karena AUTH_SECRET tidak konsisten atau cookie diblokir. Muat ulang halaman lalu coba lagi."
+      );
+    }
   }
 
   return (
