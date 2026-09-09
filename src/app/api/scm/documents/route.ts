@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { supabaseAdmin } from "@/lib/supabase-admin";
+import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
 const MAX_FILE_SIZE = 1024 * 1024;
 const BUCKET = "penyimpanan";
@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
 
   const extension = file.name.toLowerCase().endsWith(".pdf") ? "pdf" : "bin";
   const path = `${type}/${user.id}-${Date.now()}.${extension}`;
-  const upload = await supabaseAdmin.storage.from(BUCKET).upload(path, fileBytes, { contentType: "application/pdf", upsert: true });
+  const upload = await getSupabaseAdmin().storage.from(BUCKET).upload(path, fileBytes, { contentType: "application/pdf", upsert: true });
   if (upload.error) return NextResponse.json({ error: "File gagal diunggah ke penyimpanan" }, { status: 502 });
 
   if (user.role === "TOKO") {

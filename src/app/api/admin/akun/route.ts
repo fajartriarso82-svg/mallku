@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import bcrypt from "bcryptjs";
-import { supabaseAdmin } from "@/lib/supabase-admin";
+import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
 async function isAdmin() {
   const session = await auth();
@@ -60,7 +60,7 @@ export async function DELETE(request: NextRequest) {
 
   const files = [profile?.dokumenNibUrl, profile?.dokumenNpwpUrl].filter((path): path is string => Boolean(path));
   if (files.length) {
-    const storageResult = await supabaseAdmin.storage.from("penyimpanan").remove(files);
+    const storageResult = await getSupabaseAdmin().storage.from("penyimpanan").remove(files);
     if (storageResult.error) return NextResponse.json({ error: "Dokumen Storage gagal dihapus; akun belum dihapus" }, { status: 502 });
   }
 
